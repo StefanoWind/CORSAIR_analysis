@@ -10,4 +10,5 @@ __pycache__
 *.html
 *.log
 *.xlsx
+*.txt
 build/
