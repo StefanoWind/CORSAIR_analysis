@@ -17,14 +17,16 @@ def cosd(x):
 def sind(x):
     return np.sin(np.radians(x))
 
-def dual_Doppler(x1,x2,y1,y2,min_range,max_range):
+def dual_Doppler(x1,x2,y1,y2,min_range,max_range,x=None,y=None):
     
-    x=np.arange(-2000,2011,10)#[m] dual-Doppler x
-    y=np.arange(-2000,2001,10)#[m] dual-Doppler y 
+    #define grid
+    if x is None or y is None:
+        x=np.arange(-2000,2011,10)+x1
+        y=np.arange(-2000,2001,10)+y1
     
     DD=xr.Dataset()
-    DD['x']=xr.DataArray(data=x+x1,coords={'x':x+x1})
-    DD['y']=xr.DataArray(data=y+y1,coords={'y':y+y1})
+    DD['x']=xr.DataArray(data=x,coords={'x':x})
+    DD['y']=xr.DataArray(data=y,coords={'y':y})
     
     #define angles
     DD['chi1']=np.degrees(np.arctan2(DD.y-y1,DD.x-x1))

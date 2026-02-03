@@ -5,16 +5,13 @@ Scan optimization for dual-Doppler mapping
 
 import os
 cd=os.getcwd()
-import xarray as xr
 import numpy as np
 from matplotlib import pyplot as plt
 import warnings
 import matplotlib
 from lisboa import scan_optimizer as opt
 import pandas as pd
-import glob
 import utm
-from scipy import stats
 warnings.filterwarnings('ignore')
 plt.close('all')
 
@@ -36,12 +33,12 @@ sites=['Site 4.2-4.3','Site 1.9']
 site_ref='NextTracker'
 
 #Pareto
-azi1={'Site 4.2-4.3':[0],'Site 1.9':[-70]}
-azi2={'Site 4.2-4.3':[70],'Site 1.9':[0]}
-ele1={'Site 4.2-4.3':[0],'Site 1.9':[0]}
-ele2={'Site 4.2-4.3':[10],'Site 1.9':[10]}
-dazi={'Site 4.2-4.3':[2,3,4],'Site 1.9':[2,3,4]}
-dele={'Site 4.2-4.3':[0.5,1],'Site 1.9':[0.5,1]}
+azi1={'Site 4.2-4.3':[-100,-90],'Site 1.9':[0,10]}
+azi2={'Site 4.2-4.3':[80,70],'Site 1.9':[180,170]}
+ele1={'Site 4.2-4.3':[0,0],'Site 1.9':[0,0]}
+ele2={'Site 4.2-4.3':[5,5],'Site 1.9':[5,5]}
+dazi={'Site 4.2-4.3':[1,2,3],'Site 1.9':[1,2,3]}
+dele={'Site 4.2-4.3':[0.25,0.5,1],'Site 1.9':[0.25,0.5,1]}
 num_azi=None
 num_ele=None
 full_scan_file=False
@@ -58,13 +55,13 @@ rmin=100#minimum range
 rmax=1000#maximum range
 
 #time info
-T=600#[s] scan duration
-tau=4#[s] timescale in the wake
+T=1800#[s] scan duration
+tau=30#[s] timescale in the wake
 
 #lisboa
 config={'sigma':0.25,
         'max_iter':5,
-        'mins':[-1000,-1000,0],
+        'mins':[-1000,0,0],
         'maxs':[1000,1000,200],
         'Dn0':[200,200,50],
         'r_max':3,
@@ -73,12 +70,10 @@ config={'sigma':0.25,
         'grid_factor':0.25,
         'max_Dd':1}
 
-
 #%% Initialization
 
 # #read data
 FC=pd.read_excel(source_nwtc).set_index('Site')
-# M2=xr.open_mfdataset(glob.glob(source_m2))
 
 # #Cartesianize sites
 FC['x_utm'],FC['y_utm'],FC['zone_utm1'],FC['zone_utm2']=utm.from_latlon(FC['Lat'].values, FC['Lon'].values)
@@ -91,19 +86,10 @@ for s in sites:
     y0[s]=FC['y_utm'].loc[s]-FC['y_utm'].loc[site_ref]
     z0[s]=0
 
-# #climatology
-# M2=M2.where(M2.WS_5m>0)
-# N=     stats.binned_statistic_2d(M2.WS_5m.values,M2.WD_5m.values,M2.WS_5m.values,statistic='count',bins=[bins_ws,bins_wd])[0]
-# ws_avg=stats.binned_statistic_2d(M2.WS_5m.values,M2.WD_5m.values,M2.WS_5m.values,statistic='mean', bins=[bins_ws,bins_wd])[0]
-# wd_avg=stats.binned_statistic_2d(M2.WS_5m.values,M2.WD_5m.values,M2.WD_5m.values,statistic='mean', bins=[bins_ws,bins_wd])[0]
- 
-
 os.makedirs(os.path.join(cd,'figures','dual-Doppler'),exist_ok=True)
 
 #%% Main
-
 scopt=opt.scan_optimizer(config,save_path=os.path.join(cd,'data','Pareto'),logfile=os.path.join(cd,'log','test.log'))
-
 
 Pareto=scopt.pareto(coords,x0,y0,z0,azi1,azi2,ele1,ele2,dazi,dele,num_azi,num_ele,
                     volumetric=volumetric,rmin=rmin,rmax=rmax, T=T,tau=tau,
