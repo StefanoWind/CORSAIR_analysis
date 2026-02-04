@@ -53,11 +53,13 @@ def dual_Doppler(x1,x2,y1,y2,min_range,max_range,x=None,y=None):
      
     return DD
 
+
 def matrix_plt(x,y,f,cmap,vmin,vmax):
     '''
     Plot matrix with color and display values
     '''
     pc=plt.pcolor(x,y,f.T,cmap=cmap,vmin=vmin,vmax=vmax)
+    ax=plt.gca()
     for i in range(len(x)):
         for j in range(len(y)):
             if ~np.isnan(f[i,j]):
