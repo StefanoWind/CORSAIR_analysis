@@ -41,8 +41,8 @@ num_ele=None
 full_scan_file=False
 
 #lidar settings
-path_config_lidar={'Site 4.2-4.3':'C:/Users/sletizia/Software/FIEXTA/halo_suite/halo_suite/configs/config.217.yaml',
-                   'Site 1.9':    'C:/Users/sletizia/Software/FIEXTA/halo_suite/halo_suite/configs/config.217.yaml'}
+path_config_lidar={'Site 4.2-4.3':os.path.join(cd,'configs','config.217.yaml'),
+                   'Site 1.9':    os.path.join(cd,'configs','config.217.yaml')}
 volumetric=True
 mode='CSM'
 azi_offset=0#[deg] difference between scan direction and x axis
