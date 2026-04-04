@@ -16,7 +16,7 @@ plt.close('all')
 
 matplotlib.rcParams['font.family'] = 'serif'
 matplotlib.rcParams['mathtext.fontset'] = 'cm'
-matplotlib.rcParams['font.size'] = 14
+matplotlib.rcParams['font.size'] = 16
 
 #%% Inputs
 
@@ -84,7 +84,7 @@ U_rec_std_th=np.abs((D*sind(ELE1)-B*sind(ELE2))/DET)
 V_rec_std_th=np.abs((-C*sind(ELE1)+A*sind(ELE2))/DET)
 
 #%% Plots
-plt.figure(figsize=(20,20))
+plt.figure(figsize=(30,16))
 ax=plt.subplot(2,2,1)
 cf=plt.contourf(x,y,U_rec_std_th,np.arange(0,10.1,0.1),cmap='RdYlGn_r',extend='both')
 plt.plot(x1,y1,'sk',markersize=10)
@@ -92,18 +92,17 @@ plt.plot(x2,y2,'sk',markersize=10)
 ax.set_aspect('equal')
 ax.set_xticklabels([])
 plt.ylabel('$y$ [m]')
-plt.xticks(rotation=30) 
-plt.colorbar(cf,label=r'Error factor of $u$ (Theory)',ticks=np.arange(11))
+plt.text(-1400,850,s=r'$z='+str(z)+'$',bbox={'facecolor':(1,1,1,0.5),'edgecolor':'k'})
+plt.colorbar(cf,label=r'Error factor of $U$ (Theory)',ticks=np.arange(11))
 
 ax=plt.subplot(2,2,2)
 cf=plt.contourf(x,y,V_rec_std_th,np.arange(0,10.1,0.1),cmap='RdYlGn_r',extend='both')
 plt.plot(x1,y1,'sk',markersize=10)
 plt.plot(x2,y2,'sk',markersize=10)
 ax.set_aspect('equal')
-plt.xticks(rotation=30) 
 ax.set_xticklabels([])
 ax.set_yticklabels([])
-plt.colorbar(cf,label=r'Error factor of $v$ (Theory)',ticks=np.arange(11))
+plt.colorbar(cf,label=r'Error factor of $V$ (Theory)',ticks=np.arange(11))
 
 ax=plt.subplot(2,2,3)
 cf=plt.contourf(x,y,U_rec_std,np.arange(0,10.1,0.1),cmap='RdYlGn_r',extend='both')
@@ -112,9 +111,7 @@ plt.plot(x2,y2,'sk',markersize=10)
 ax.set_aspect('equal')
 plt.xlabel('$x$ [m]')
 plt.ylabel('$y$ [m]')
-plt.xticks(rotation=30) 
-plt.text(-1400,850,s=r'$z='+str(z)+'$',bbox={'facecolor':(1,1,1,0.5),'edgecolor':'k'})
-plt.colorbar(cf,label=r'Error factor of $u$ (MC)',ticks=np.arange(11))
+plt.colorbar(cf,label=r'Error factor of $U$ (MC)',ticks=np.arange(11))
 
 ax=plt.subplot(2,2,4)
 cf=plt.contourf(x,y,V_rec_std,np.arange(0,10.1,0.1),cmap='RdYlGn_r',extend='both')
@@ -122,7 +119,6 @@ plt.plot(x1,y1,'sk',markersize=10)
 plt.plot(x2,y2,'sk',markersize=10)
 ax.set_aspect('equal')
 ax.set_yticklabels([])
-plt.colorbar(cf,label=r'Error factor of $v$ (MC)',ticks=np.arange(11))
+plt.colorbar(cf,label=r'Error factor of $V$ (MC)',ticks=np.arange(11))
 plt.xlabel('$x$ [m]')
-plt.xticks(rotation=30) 
 plt.tight_layout()

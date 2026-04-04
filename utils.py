@@ -67,3 +67,67 @@ def matrix_plt(x,y,f,cmap,vmin,vmax):
                         ha='center', va='center', color='k', fontsize=10,fontweight='bold')
             
     return pc
+
+def aerial_map(x,y,lat0,lon0,zoom=15,color='r',markersize=10,alpha=1,
+               xmin=None,xmax=None,ymin=None,ymax=None):
+    '''
+    Draw aerail map and superpose points
+    '''
+    import requests
+    from requests.packages.urllib3.exceptions import InsecureRequestWarning
+    
+    # 1. Suppress the annoying warning messages
+    requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+    
+    # 2. Force 'verify=False' for every single request made in this session
+    old_merge_environment_settings = requests.Session.merge_environment_settings
+    
+    def merge_environment_settings(self, url, proxies, stream, verify, cert):
+        settings = old_merge_environment_settings(self, url, proxies, stream, verify, cert)
+        settings['verify'] = False
+        return settings
+    
+    requests.Session.merge_environment_settings = merge_environment_settings
+    
+    import contextily as cx
+    import matplotlib.pyplot as plt
+    import pandas as pd
+    import geopandas as gpd
+    
+    # Create a custom PROJ string for AEQD centered on your origin
+    custom_crs = f"+proj=aeqd +lat_0={lat0} +lon_0={lon0} +units=m +datum=WGS84"
+    
+    # Create the GeoDataFrame using your custom CRS
+    df = pd.DataFrame({'x':x,'y':y})
+    
+    gdf = gpd.GeoDataFrame(df, 
+    geometry=gpd.points_from_xy(df.x, df.y), 
+    crs=custom_crs)
+    
+   
+    # 2. Transform these corners to Web Mercator (just like your points)
+
+    
+    # Re-project for the aerial map background
+    gdf_web = gdf.to_crs(epsg=3857)
+   
+    
+    fig, ax = plt.subplots(figsize=(10, 10))
+    
+    # Plot your relative points
+    gdf_web.plot(ax=ax, color='r', markersize=markersize, alpha=alpha,zorder=3)
+    
+    # Impose edges
+    if xmin is not None:
+        corners = gpd.GeoDataFrame(
+        geometry=gpd.points_from_xy([xmin, xmax], [ymin, ymax]),
+        crs=custom_crs
+        )
+        corners_web = corners.to_crs(epsg=3857)
+        ax.set_xlim(list(corners_web.geometry.x))
+        ax.set_ylim(list(corners_web.geometry.y))
+
+    # Add high-res aerial imagery
+    cx.add_basemap(ax, source=cx.providers.Esri.WorldImagery,zoom=zoom)
+    
+    return fig,ax

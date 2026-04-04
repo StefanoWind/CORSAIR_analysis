@@ -5,7 +5,6 @@ Scan optimization for dual-Doppler mapping
 
 import os
 cd=os.getcwd()
-import numpy as np
 from matplotlib import pyplot as plt
 import warnings
 import matplotlib
@@ -21,39 +20,40 @@ matplotlib.rcParams['font.size'] = 14
 matplotlib.rcParams['savefig.dpi'] = 300
 
 #%% Inputs
-source_nwtc=os.path.join(cd,'data/FC_assets.xlsx')#source nwtc sites
-min_range=100#[m] minimum range
-max_range=2000#[m] maximum range
+source_nwtc=os.path.join(cd,'data/FC_sensing.xlsx')#source nwtc sites
+parallel=False
 
-sites=['Site 4.2-4.3','Site 1.9']#lidar sites
+sites=['Site 4.2','Site 1.9']#lidar sites
 site_ref='NextTracker'#grid origin
 
 #Pareto
 coords='xyz'
-azi1={'Site 4.2-4.3':[-95,-95,-95,-95],'Site 1.9':[-80,-80,-80,-80]}
-azi2={'Site 4.2-4.3':[65,65,65,65],'Site 1.9':[80,80,80,80]}
-ele1={'Site 4.2-4.3':[0,0,0,0],'Site 1.9':[0,0,0,0]}
-ele2={'Site 4.2-4.3':[10,15,20,25],'Site 1.9':[10,15,20,25]}
-dazi={'Site 4.2-4.3':[1,2,3],'Site 1.9':[1,2,3]}
-dele={'Site 4.2-4.3':[0.25,0.5,1],'Site 1.9':[0.25,0.5,1]}
+azi1={'Site 4.2':[-95,-95,-95,-95],'Site 1.9':[-80,-80,-80,-80]}
+azi2={'Site 4.2':[65,65,65,65],'Site 1.9':[80,80,80,80]}
+ele1={'Site 4.2':[0,0,0,0],'Site 1.9':[0,0,0,0]}
+ele2={'Site 4.2':[15,20,25,30],'Site 1.9':[15,20,25,30]}
+dazi={'Site 4.2':[1,2,3,4,5],'Site 1.9':[1,2,3,4,5]}
+dele={'Site 4.2':[0.25,0.5,1,1.5,2],'Site 1.9':[0.25,0.5,1,1.5,2]}
 num_azi=None
 num_ele=None
 full_scan_file=False
 
 #lidar settings
-path_config_lidar={'Site 4.2-4.3':os.path.join(cd,'configs','config.217.yaml'),
-                   'Site 1.9':    os.path.join(cd,'configs','config.217.yaml')}
+path_config_lidar={'Site 4.2':os.path.join(cd,'configs','config.199.yaml'),
+                   'Site 1.9':os.path.join(cd,'configs','config.200.yaml')}
 volumetric=True
 mode='CSM'
-azi_offset=0#[deg] difference between scan direction and x axis
-ppr=1000#pulses per ray
+azi0={'Site 4.2':3.55,
+      'Site 1.9':12}#azimuth offset [deg]
+
+ppr=3000#pulses per ray
 dr=30#[m] gate length
 rmin=100#minimum range
 rmax=1500#maximum range
 
 #time info
 T=1800#[s] scan duration
-tau=30#[s] timescale in the wake
+tau=30#[s] timescale
 
 #lisboa
 config={'sigma':0.25,
@@ -73,7 +73,7 @@ config={'sigma':0.25,
 FC=pd.read_excel(source_nwtc).set_index('Site')
 
 #UTM locations
-FC['x_utm'],FC['y_utm'],FC['zone_utm1'],FC['zone_utm2']=utm.from_latlon(FC['Lat'].values, FC['Lon'].values)
+FC['x_utm'],FC['y_utm'],FC['zone_utm1'],FC['zone_utm2']=utm.from_latlon(FC['Latitude'].values, FC['Longitude'].values)
 
 x0={}
 y0={}
@@ -88,10 +88,10 @@ os.makedirs(os.path.join(cd,'figures','dual-Doppler'),exist_ok=True)
 #%% Main
 scopt=opt.scan_optimizer(config,save_path=os.path.join(cd,'data','Pareto'))
 
-Pareto=scopt.pareto(coords,x0,y0,z0,azi1,azi2,ele1,ele2,dazi,dele,num_azi,num_ele,
+Pareto=scopt.pareto(coords,x0,y0,z0,azi0,azi1,azi2,ele1,ele2,dazi,dele,num_azi,num_ele,
                     volumetric=volumetric,rmin=rmin,rmax=rmax, T=T,tau=tau,
                     mode=mode, ppr=ppr, dr=dr, path_config_lidar=path_config_lidar,
-                    full_scan_file=full_scan_file,parallel=True)
+                    full_scan_file=full_scan_file,parallel=parallel)
 
 
        

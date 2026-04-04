@@ -17,7 +17,7 @@ plt.close('all')
 
 matplotlib.rcParams['font.family'] = 'serif'
 matplotlib.rcParams['mathtext.fontset'] = 'cm'
-matplotlib.rcParams['font.size'] = 14
+matplotlib.rcParams['font.size'] = 16
 
 #%% Inputs
 
@@ -119,7 +119,7 @@ DD['sigma_wd']=(((sind(270-DD['wd_avg']))**2*DD['sigma_u']**2+\
 DD['sigma_wd']=DD['sigma_wd'].where(~np.isnan(DD['sigma_u']))
 
 #%% Plots
-plt.figure(figsize=(20,20))
+plt.figure(figsize=(30,16))
 ax=plt.subplot(2,2,1)
 cf=plt.contourf(x,y,U_rec_std,np.arange(0,10.2,0.1),cmap='RdYlGn_r',extend='both')
 plt.plot(x1,y1,'sk',markersize=10)
@@ -127,7 +127,7 @@ plt.plot(x2,y2,'sk',markersize=10)
 ax.set_aspect('equal')
 plt.ylabel('$y$ [m]')
 ax.set_xticklabels([])
-plt.colorbar(cf,label=r'Error factor of $u$',ticks=np.arange(11))
+plt.colorbar(cf,label=r'Error factor of $U$',ticks=np.arange(11))
 
 ax=plt.subplot(2,2,2)
 cf=plt.contourf(x,y,V_rec_std,np.arange(0,10.1,0.1),cmap='RdYlGn_r',extend='both')
@@ -136,7 +136,7 @@ plt.plot(x2,y2,'sk',markersize=10)
 ax.set_aspect('equal')
 ax.set_xticklabels([])
 ax.set_yticklabels([])
-plt.colorbar(cf,label=r'Error factor of $v$',ticks=np.arange(11))
+plt.colorbar(cf,label=r'Error factor of $V$',ticks=np.arange(11))
 
 ax=plt.subplot(2,2,3)
 cf=plt.contourf(x,y,WS_rec_std,np.arange(0,10.1,0.1),cmap='RdYlGn_r',extend='both')
@@ -145,8 +145,7 @@ plt.plot(x2,y2,'sk',markersize=10)
 ax.set_aspect('equal')
 plt.xlabel('$x$ [m]')
 plt.ylabel('$y$ [m]')
-plt.xticks(rotation=30) 
-plt.colorbar(cf,label=r'Error factor of wind speed',ticks=np.arange(11))
+plt.colorbar(cf,label=r'Error factor of $U_h$',ticks=np.arange(11))
 
 ax=plt.subplot(2,2,4)
 cf=plt.contourf(x,y,WD_rec_std,np.arange(0,91),cmap='RdYlGn_r',extend='both')
@@ -154,14 +153,13 @@ plt.plot(x1,y1,'sk',markersize=10)
 plt.plot(x2,y2,'sk',markersize=10)
 ax.set_aspect('equal')
 plt.xlabel('$x$ [m]')
-plt.xticks(rotation=30) 
 ax.set_yticklabels([])
-plt.colorbar(cf,label=r'Error factor of wind direction [$^\circ$ s m$^{-1}$]',ticks=np.arange(0,91,10))
+plt.colorbar(cf,label=r'Error factor of $\theta_h$ [$^\circ$ s m$^{-1}$]',ticks=np.arange(0,91,10))
 
 plt.tight_layout()
 
 #dual-Doppler error (u,v)
-plt.figure(figsize=(20,20))
+plt.figure(figsize=(30,16))
 ax=plt.subplot(2,2,1)
 cf=plt.contourf(DD.x,DD.y,DD.sigma_u,np.arange(0,10.2,0.1),cmap='RdYlGn_r',extend='both')
 plt.plot(x1,y1,'sk',markersize=10)
@@ -169,7 +167,7 @@ plt.plot(x2,y2,'sk',markersize=10)
 ax.set_aspect('equal')
 plt.ylabel('$y$ [m]')
 ax.set_xticklabels([])
-plt.colorbar(cf,label=r'Error factor of $u$',ticks=np.arange(11))
+plt.colorbar(cf,label=r'Error factor of $U$',ticks=np.arange(11))
    
 ax=plt.subplot(2,2,2)
 cf=plt.contourf(DD.x,DD.y,DD.sigma_v,np.arange(0,10.1,0.1),cmap='RdYlGn_r',extend='both')
@@ -178,7 +176,7 @@ plt.plot(x2,y2,'sk',markersize=10)
 ax.set_aspect('equal')
 ax.set_xticklabels([])
 ax.set_yticklabels([])
-plt.colorbar(cf,label=r'Error factor of $v$',ticks=np.arange(11))
+plt.colorbar(cf,label=r'Error factor of $V$',ticks=np.arange(11))
 
 ax=plt.subplot(2,2,3)
 cf=plt.contourf(DD.x,DD.y,DD.sigma_ws,np.arange(0,10.1,0.1),cmap='RdYlGn_r',extend='both')
@@ -187,8 +185,7 @@ plt.plot(x2,y2,'sk',markersize=10)
 ax.set_aspect('equal')
 plt.xlabel('$x$ [m]')
 plt.ylabel('$y$ [m]')
-plt.xticks(rotation=30) 
-plt.colorbar(cf,label=r'Error factor of wind speed',ticks=np.arange(11))
+plt.colorbar(cf,label=r'Error factor of $U_h$',ticks=np.arange(11))
 
 ax=plt.subplot(2,2,4)
 cf=plt.contourf(DD.x,DD.y,DD.sigma_wd,np.arange(0,91),cmap='RdYlGn_r',extend='both')
@@ -196,9 +193,8 @@ plt.plot(x1,y1,'sk',markersize=10)
 plt.plot(x2,y2,'sk',markersize=10)
 ax.set_aspect('equal')
 plt.xlabel('$x$ [m]')
-plt.xticks(rotation=30) 
 ax.set_yticklabels([])
-plt.colorbar(cf,label=r'Error factor of wind direction [$^\circ$ s m$^{-1}$]',ticks=np.arange(0,91,10))
+plt.colorbar(cf,label=r'Error factor of $\theta_h$ [$^\circ$ s m$^{-1}$]',ticks=np.arange(0,91,10))
 
 plt.tight_layout()
 
