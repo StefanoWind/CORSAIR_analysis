@@ -34,9 +34,16 @@ ele1={'Site 4.2':[0,0,0,0],'Site 1.9':[0,0,0,0]}
 ele2={'Site 4.2':[15,20,25,30],'Site 1.9':[15,20,25,30]}
 dazi={'Site 4.2':[1,2,3,4,5],'Site 1.9':[1,2,3,4,5]}
 dele={'Site 4.2':[0.25,0.5,1,1.5,2],'Site 1.9':[0.25,0.5,1,1.5,2]}
+
+azi1={'Site 4.2':[-95],'Site 1.9':[-80]}
+azi2={'Site 4.2':[65],'Site 1.9':[80]}
+ele1={'Site 4.2':[0],'Site 1.9':[0]}
+ele2={'Site 4.2':[20],'Site 1.9':[20]}
+dazi={'Site 4.2':[3],'Site 1.9':[3]}
+dele={'Site 4.2':[1],'Site 1.9':[1]}
 num_azi=None
 num_ele=None
-full_scan_file=False
+full_scan_file=True
 
 #lidar settings
 path_config_lidar={'Site 4.2':os.path.join(cd,'configs','config.199.yaml'),

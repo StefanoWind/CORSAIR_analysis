@@ -115,7 +115,7 @@ def aerial_map(x,y,lat0,lon0,zoom=15,color='r',markersize=10,alpha=1,
     fig, ax = plt.subplots(figsize=(10, 10))
     
     # Plot your relative points
-    gdf_web.plot(ax=ax, color='r', markersize=markersize, alpha=alpha,zorder=3)
+    gdf_web.plot(ax=ax, color=color, markersize=markersize, alpha=alpha,zorder=3)
     
     # Impose edges
     if xmin is not None:

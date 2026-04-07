@@ -7,7 +7,7 @@ import utils as utl
 import xarray as xr
 from matplotlib import pyplot as plt
 import numpy as np
-import yaml
+import pandas as pd
 import matplotlib
 import utm
 
@@ -19,8 +19,10 @@ plt.close("all")
 
 #%% Inputs
 source=os.path.abspath(os.path.join('data','corsair','s42.lidar.z01.a0',
-                                    's42.lidar.z01.a0.20260403.210310.user1.nc'))
-path_config=os.path.abspath(os.path.join('configs','config_corsair.yaml'))
+                                    's42.lidar.z01.a0.20260406.150921.user1.nc'))
+
+source_nwtc=os.path.abspath('data/FC_sensing.xlsx')#source nwtc sites
+
 
 min_SNR=10#[dB] minimum SNR for hard taget
 max_SNR_bloc=-22.5#[dB] maximum mean near range SNR for blocked beams
@@ -35,15 +37,15 @@ xmin,xmax,ymin,ymax=-2000,500,-1000,1000
 
 #%% Initialization
 
-#configs
-with open(path_config, 'r') as fid:
-    config = yaml.safe_load(fid)
+#site layout
+FC=pd.read_excel(source_nwtc).set_index('Site')
     
-site=os.path.basename(source).split('.')[0]
-lat0, lon0 =  config['latitude'][site], config['longitude'][site] #location of the lidar
-    
-Data=xr.open_dataset(source)
+site=f'Site {os.path.basename(source)[1]}.{os.path.basename(source)[2]}'
+lat0, lon0 =  FC['Latitude'].loc[site], FC['Longitude'].loc[site] #location of the lidar    
 x0,y0,_,_=utm.from_latlon(lat0, lon0)
+
+#lidar data
+Data=xr.open_dataset(source)
 
 #%% Main
 Data=Data.where(Data.distance<np.max(np.abs(np.array([xmin,xmax,ymin,ymax]))),drop=True)
