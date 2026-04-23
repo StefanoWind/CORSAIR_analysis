@@ -442,7 +442,7 @@ def visualize_volume(Data,config,save_path):
     cax=fig.add_subplot(gs[:,-1])
     plt.colorbar(cf,cax,label=r'Mean radial wind speed [m s$^{-1}$]')
     
-    plt.suptitle('Mean RWS velocity on '+Data.attrs['start_time'][:10]+'\n File: '+os.path.basename(Data.attrs['input_source'])\
+    plt.suptitle('Mean radial wind speed on '+Data.attrs['start_time'][:10]+'\n File: '+os.path.basename(Data.attrs['input_source'])\
               +'\n Time (UTC): '+Data.attrs['start_time'][11:19]+' - '+Data.attrs['end_time'][11:19])
    
     fig.savefig(save_path.replace('.nc','_rws_avg.png'))
