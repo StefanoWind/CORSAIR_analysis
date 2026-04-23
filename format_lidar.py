@@ -12,14 +12,20 @@ Inputs (both hard-coded and available as command line inputs in this order):
 import os
 cd=os.path.dirname(__file__)
 import sys
-import traceback
 import warnings
 import logging
-import lidargo as lg
 from datetime import datetime
 import yaml
 from multiprocessing import Pool
+import utils as utl
 import glob
+from matplotlib import pyplot as plt
+import matplotlib
+matplotlib.rcParams['font.family'] = 'serif'
+matplotlib.rcParams['mathtext.fontset'] = 'cm'
+matplotlib.rcParams['font.size'] = 12
+plt.close('all')
+plt.close('all')
 warnings.filterwarnings('ignore')
 
 #%% Inputs
@@ -45,22 +51,6 @@ with open(path_config, 'r') as fid:
 #initialize main logger
 logfile_main=os.path.join(cd,'log',datetime.strftime(datetime.now(), '%Y%m%d.%H%M%S'))+'_errors.log'
 os.makedirs('log',exist_ok=True)
-
-#%% Functions
-def format_file(file,save_path,delete,config,logfile_main,replace):
-    try:
-        logfile=os.path.join(cd,'log',os.path.basename(file).replace('hpl','log'))
-        lproc = lg.Format(file, config=config['path_config_format'], verbose=True,logfile=logfile)
-        lproc.process_scan(replace=replace, save_file=True,save_path=save_path_raw)
-        
-        if delete:
-            os.remove(file)
-            
-    except:
-        with open(logfile_main, 'a') as lf:
-            lf.write(f"{datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S')} - ERROR - Error formatting file {os.path.basename(file)}: \n")
-            traceback.print_exc(file=lf)
-            lf.write('\n --------------------------------- \n')
             
 #%% Main
 for channel in config['channels']:
@@ -70,11 +60,11 @@ for channel in config['channels']:
     save_path_raw=os.path.join(config['path_data'],channel.replace('raw','00'))
     if mode=='serial':
         for f in files:
-            format_file(f,save_path_raw,delete,config,logfile_main,replace)
+            utl.format_file(f,save_path_raw,delete,config,logfile_main,replace)
     elif mode=='parallel':
         args = [(files[i],save_path_raw,delete, config,logfile_main,replace) for i in range(len(files))]
         with Pool() as pool:
-            pool.starmap(format_file, args)
+            pool.starmap(utl.format_file, args)
     else:
         raise BaseException(f"{mode} is not a valid processing mode (must be serial or parallel)")
    

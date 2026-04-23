@@ -10,6 +10,7 @@ import warnings
 import matplotlib
 from lisboa import scan_optimizer as opt
 import pandas as pd
+import numpy as np
 import utm
 warnings.filterwarnings('ignore')
 plt.close('all')
@@ -28,12 +29,12 @@ site_ref='QED'#grid origin
 
 #Pareto
 coords='xyz'
-azi1={'Halo 199':[280],'Halo 200':[-10]}
+azi1={'Halo 199':[280],'Halo 200':[350]}
 azi2={'Halo 199':[300],'Halo 200':[30]}
-ele1={'Halo 199':[0],'Halo 200':[0]}
-ele2={'Halo 199':[6],'Halo 200':[10]}
-dazi={'Halo 199':[0.5,1,  2],  'Halo 200':[1,  2,  4]}
-dele={'Halo 199':[0.1,0.2,0.4],'Halo 200':[0.2,0.4,0.8]}
+ele1={'Halo 199':[0],  'Halo 200':[0]}
+ele2={'Halo 199':[6],  'Halo 200':[10]}
+dazi={'Halo 199':[0.5 ,0.75, 1, 1.25,  1.5],'Halo 200':[1 ,1.5, 2, 2.5,  3]}
+dele={'Halo 199':np.array(dazi['Halo 199'])/4,'Halo 200': np.array(dazi['Halo 200'])/4}
 
 num_azi=None
 num_ele=None
@@ -60,8 +61,8 @@ tau=30#[s] timescale
 config={'sigma':0.25,
         'max_iter':5,
         'mins':[-150,-100,0],
-        'maxs':[150,100,80],
-        'Dn0':[50,50,10],
+        'maxs':[ 150,100,80],
+        'Dn0':[40,40,10],
         'r_max':3,
         'dist_edge':1,
         'tol_dist':0.1,
