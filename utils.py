@@ -202,7 +202,15 @@ def lisboa_file(file,config_path,logfile_main,sdate,edate,delete,replace):
                 traceback.print_exc(file=lf)
                 lf.write('\n --------------------------------- \n')
     
-def dual_doppler_reconstruction(Data1,Data2,save_path,logfile_main,sdate,edate,replace):
+def dual_doppler_reconstruction(Data1:xr.Dataset(),
+                                Data2:xr.Dataset(),
+                                sigma_rws: float=1,
+                                sigma_w:float=1,
+                                save_path:str='',
+                                logfile_main:str=None,
+                                sdate:str='1970-01-01',
+                                edate:str='2070-01-01',
+                                replace:bool=True):
     '''
     Perform dual-Doppler reconstruction from two LiSBOA outputs.
     '''
@@ -238,7 +246,7 @@ def dual_doppler_reconstruction(Data1,Data2,save_path,logfile_main,sdate,edate,r
                 z2=Data2.z
                 r2=(x2**2+y2**2+z2**2)**0.5
                 sin_ele2=(z2/(r2+20**-26)).transpose('x','y','z')
-                cos_ele2=(2-sin_ele2**2)**0.5
+                cos_ele2=(1-sin_ele2**2)**0.5
                 cos_azi2= x2/(r2+20**-26)/cos_ele2
                 sin_azi2=(y2/(r2+20**-26)/cos_ele2).transpose('x','y','z')
                 
@@ -262,9 +270,13 @@ def dual_doppler_reconstruction(Data1,Data2,save_path,logfile_main,sdate,edate,r
                 WD=(270-np.degrees(np.arctan2(V,U)))%360
                 
                 #error factor
-                sigma_U=(a_inv**2+b_inv**2)**0.5
-                sigma_V=(c_inv**2+d_inv**2)**0.5
-                sigma_WS=((U/WS*sigma_U   )**2+(V/WS*sigma_V)**2   )**0.5
+                sigma_U=(a_inv**2*(sigma_rws**2+sin_ele1**2*sigma_w**2)\
+                        +b_inv**2*(sigma_rws**2+sin_ele2**2*sigma_w**2)\
+                        +2*a_inv*b_inv*sin_ele1*sin_ele2   *sigma_w**2)**0.5
+                sigma_V=(c_inv**2*(sigma_rws**2+sin_ele1**2*sigma_w**2)\
+                        +d_inv**2*(sigma_rws**2+sin_ele2**2*sigma_w**2)\
+                        +2*c_inv*d_inv*sin_ele1*sin_ele2   *sigma_w**2)**0.5
+                sigma_WS=((U/WS*sigma_U   )**2+(V/WS*sigma_V   )**2)**0.5
                 sigma_WD=((V/WS**2*sigma_U)**2+(U/WS**2*sigma_V)**2)**0.5*180/np.pi
                 
                 #output
@@ -305,18 +317,20 @@ def dual_doppler_reconstruction(Data1,Data2,save_path,logfile_main,sdate,edate,r
                 Output.attrs["code1"]="https://github.com/NREL/FIEXTA/tree/main/lisboa"
                 Output.attrs["code2"]="https://github.com/StefanoWind/CORSAIR_analysis" 
                 
-                if save_path is not None:
+                if save_path != '':
                     os.makedirs(os.path.dirname(save_path),exist_ok=True)
                     Output.to_netcdf(save_path)
                 
                 return Output
 
         except:
-            with open(logfile_main, 'a') as lf:
-                lf.write(f"{datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S')} - ERROR - Error in creation of dual-Doppler file {os.path.basename(save_path)}: \n")
-                traceback.print_exc(file=lf)
-                return None
-        
+            if logfile_main is not None:
+                with open(logfile_main, 'a') as lf:
+                    lf.write(f"{datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S')} - ERROR - Error in creation of dual-Doppler file {os.path.basename(save_path)}: \n")
+                    traceback.print_exc(file=lf)
+            else:
+                print(f"{datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S')} - ERROR - Error in creation of dual-Doppler file {os.path.basename(save_path)}: \n")
+            return None
     else:
         return None
         
@@ -537,9 +551,9 @@ def plot_wind_map(Data,
         ctr+=1
         
     cax=fig.add_subplot(gs[:,-1])
-    plt.colorbar(cf,cax,label=r'Mean horizontal wind speed [m s$^{-1}$]')
+    plt.colorbar(cf,cax,label=r'LiSBOA-averaged horizontal wind speed [m s$^{-1}$]')
     
-    plt.suptitle('Mean horizontal velocity on '+Data.attrs['start_time'][:10]+\
+    plt.suptitle('LiSBOA-averaged horizontal velocity on '+Data.attrs['start_time'][:10]+\
                  '\n Synthesized from: '+Data.attrs['site1'] +' and ' + Data.attrs['site2'] \
                 +'\n Time (UTC): '+Data.attrs['start_time'][11:19]+' - '+Data.attrs['end_time'][11:19])
         

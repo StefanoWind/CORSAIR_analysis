@@ -22,7 +22,7 @@ matplotlib.rcParams['font.size'] = 16
 
 #grid [m]
 x=np.arange(-1500,1501,25)
-y=np.arange(-1000,1001,25)
+y=np.arange(-250,1001,25)
 
 z=200#[m] height
 
@@ -60,28 +60,33 @@ ELE1=np.degrees(np.arctan2(z-z1,R1))
 R2=((X-x2)**2+(Y-y2)**2)**0.5
 ELE2=np.degrees(np.arctan2(z-z2,R2))
 
-#component of projection matrix [A,B],[C,D]]
+#component of projection matrix [[A,B],[C,D]]
 A=cosd(90-AZI1)*cosd(ELE1)
 B=sind(90-AZI1)*cosd(ELE1)
 C=cosd(90-AZI2)*cosd(ELE2)
 D=sind(90-AZI2)*cosd(ELE2)
 DET=A*D-B*C
 
+a=+D/DET
+b=-B/DET
+c=-C/DET
+d=+A/DET
+
 #LOS velocities with uncertainty
 U_los1=np.stack([A]*L,axis=2)*U+np.stack([B]*L,axis=2)*V+sind(np.stack([ELE1]*L,axis=2))*w
 U_los2=np.stack([C]*L,axis=2)*U+np.stack([D]*L,axis=2)*V+sind(np.stack([ELE2]*L,axis=2))*w
 
 #wind reconstruction
-U_rec=( np.stack([D]*L,axis=2)*U_los1-np.stack([B]*L,axis=2)*U_los2)/np.stack([DET]*L,axis=2)
-V_rec=(-np.stack([C]*L,axis=2)*U_los1+np.stack([A]*L,axis=2)*U_los2)/np.stack([DET]*L,axis=2)
+U_rec=(np.stack([a]*L,axis=2)*U_los1+np.stack([b]*L,axis=2)*U_los2)
+V_rec=(np.stack([c]*L,axis=2)*U_los1+np.stack([d]*L,axis=2)*U_los2)
 
 #MC uncertainty
 U_rec_std=np.nanstd(U_rec,axis=2)/sigma_w
 V_rec_std=np.nanstd(V_rec,axis=2)/sigma_w
 
 #theoretical uncertainty
-U_rec_std_th=np.abs((D*sind(ELE1)-B*sind(ELE2))/DET)
-V_rec_std_th=np.abs((-C*sind(ELE1)+A*sind(ELE2))/DET)
+U_rec_std_th=(np.round((a*sind(ELE1))**2+(b*sind(ELE2))**2+2*a*b*sind(ELE1)*sind(ELE2),5))**0.5
+V_rec_std_th=(np.round((c*sind(ELE1))**2+(d*sind(ELE2))**2+2*c*d*sind(ELE1)*sind(ELE2),5))**0.5
 
 #%% Plots
 plt.figure(figsize=(30,16))
