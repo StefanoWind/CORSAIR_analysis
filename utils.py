@@ -642,6 +642,8 @@ def load_config_from_file(config_file: str, source: str):
     del config_lisboa['channel_name']
     del config_lisboa['origin_alt']
     del config_lisboa['stride_map']
+    del config_lisboa['sigma_rws']
+    del config_lisboa['sigma_w']
     
     return config,config_lisboa
     

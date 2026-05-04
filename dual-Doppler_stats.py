@@ -34,7 +34,7 @@ warnings.filterwarnings('ignore')
 #users inputs
 if len(sys.argv)==1:
     sdate='2026-04-14' #start date
-    edate='2026-04-20' #end date
+    edate='2026-04-15' #end date
     delete=False #delete input files?
     replace=False #replace existing files?
     path_config=os.path.join(cd,'configs/config_corsair.yaml') #config path
@@ -107,7 +107,10 @@ for f1,d1 in zip(files[config['channels_dual-doppler'][0]],dates[config['channel
                                Data1.attrs['config_channel_name'].split('/')[-1]+f1.split('.c1')[-1])
         
         #wind map reconstruction
-        Output=utl.dual_doppler_reconstruction(Data1, Data2,
+        Output=utl.dual_doppler_reconstruction(Data1=Data1,
+                                               Data2=Data2,
+                                               sigma_rws=Data1.attrs['config_sigma_rws'],
+                                               sigma_w=Data1.attrs['config_sigma_w'],
                                                logfile_main=logfile_main,
                                                sdate=sdate,
                                                edate=edate,
