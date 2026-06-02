@@ -12,7 +12,7 @@ plt.close('all')
 
 matplotlib.rcParams['font.family'] = 'serif'
 matplotlib.rcParams['mathtext.fontset'] = 'cm'
-matplotlib.rcParams['font.size'] = 16
+matplotlib.rcParams['font.size'] = 14
 
 #%% Inputs
 
@@ -194,7 +194,7 @@ for iz in range(len(z)):
 plt.colorbar(pc1,cax=fig.add_subplot(gs[0,-1]),label='Bias on \n $U$ [m s$^{-1}$]')
 plt.colorbar(pc2,cax=fig.add_subplot(gs[1,-1]),label='Bias on \n $V$ [m s$^{-1}$]')
 plt.colorbar(pc3,cax=fig.add_subplot(gs[2,-1]),label='Bias on \n wind speed [m s$^{-1}$]')
-plt.colorbar(pc4,cax=fig.add_subplot(gs[3,-1]),label='Bias on \n wind direction [$^\circ$')
+plt.colorbar(pc4,cax=fig.add_subplot(gs[3,-1]),label='Bias on \n wind direction [$^\circ$]')
 
 fig=plt.figure(figsize=(18,5))
 gs = GridSpec(nrows=2, ncols=len(z)+1, width_ratios=[1]*len(z)+[0.05], figure=fig)

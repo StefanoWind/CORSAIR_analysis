@@ -245,10 +245,10 @@ def dual_doppler_reconstruction(Data1:xr.Dataset(),
                 y2=Data2.y-Data2.attrs['y_lidar']
                 z2=Data2.z
                 r2=(x2**2+y2**2+z2**2)**0.5
-                sin_ele2=(z2/(r2+20**-26)).transpose('x','y','z')
+                sin_ele2=(z2/(r2+10**-16)).transpose('x','y','z')
                 cos_ele2=(1-sin_ele2**2)**0.5
-                cos_azi2= x2/(r2+20**-26)/cos_ele2
-                sin_azi2=(y2/(r2+20**-26)/cos_ele2).transpose('x','y','z')
+                cos_azi2= x2/(r2+10**-16)/cos_ele2
+                sin_azi2=(y2/(r2+10**-16)/cos_ele2).transpose('x','y','z')
                 
                 #build forward matrix
                 a=cos_azi1*cos_ele1
@@ -276,8 +276,13 @@ def dual_doppler_reconstruction(Data1:xr.Dataset(),
                 sigma_V=(c_inv**2*(sigma_rws**2+sin_ele1**2*sigma_w**2)\
                         +d_inv**2*(sigma_rws**2+sin_ele2**2*sigma_w**2)\
                         +2*c_inv*d_inv*sin_ele1*sin_ele2   *sigma_w**2)**0.5
-                sigma_WS=((U/WS*sigma_U   )**2+(V/WS*sigma_V   )**2)**0.5
-                sigma_WD=((V/WS**2*sigma_U)**2+(U/WS**2*sigma_V)**2)**0.5*180/np.pi
+                
+                sigma_UV=a_inv*c_inv*(sigma_rws**2+sin_ele1**2*sigma_w**2)\
+                        +b_inv*d_inv*(sigma_rws**2+sin_ele2**2*sigma_w**2)\
+                        +(a_inv*d_inv+b_inv*c_inv)*sin_ele1*sin_ele2*sigma_w**2
+                    
+                sigma_WS=((U/WS*sigma_U   )**2+(V/WS*sigma_V   )**2+2*U*V/WS**2*sigma_UV)**0.5
+                sigma_WD=((V/WS**2*sigma_U)**2+(U/WS**2*sigma_V)**2-2*U*V/WS**4*sigma_UV)**0.5*180/np.pi
                 
                 #output
                 Output=xr.Dataset()

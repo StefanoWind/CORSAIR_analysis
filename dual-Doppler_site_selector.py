@@ -24,7 +24,7 @@ matplotlib.rcParams['mathtext.fontset'] = 'cm'
 matplotlib.rcParams['font.size'] = 14
 
 #%% Inputs
-source_nwtc=os.path.join(cd,'data/FC_assets.xlsx')#source nwtc sites
+source_nwtc=os.path.join(cd,'data/CORSAIR_layout.xlsx')#source nwtc sites
 source_m2=os.path.join(cd,'data/nwtc.m2.b0/*nc')#source of M2 wind data
 source_img=os.path.join(cd,'figures/FC.png')#image source
 min_range=100#[m] minimum range
