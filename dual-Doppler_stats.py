@@ -71,9 +71,15 @@ for channel in config['channels_dual-doppler']:
         for f in files:
               utl.lisboa_file(f,config['path_config_dual-doppler'],logfile_main,sdate,edate,delete,replace)
     elif mode=='parallel':
-        args = [(files[i], config['path_config_dual-doppler'],logfile_main,sdate,edate,delete,replace) for i in range(len(files))]
+        args = [(files[i],config['path_config_dual-doppler'],logfile_main+f'.{i}',sdate,edate,delete,replace) for i in range(len(files))]
         with Pool() as pool:
             pool.starmap(utl.lisboa_file, args)
+        for i in range(len(files)):
+            wlog=logfile_main+f'.{i}'
+            if os.path.isfile(wlog):
+                with open(wlog,'r') as src, open(logfile_main,'a') as dst:
+                    dst.write(src.read())
+                os.remove(wlog)
     else:
         raise BaseException(f"{mode} is not a valid processing mode (must be serial or parallel)")
 

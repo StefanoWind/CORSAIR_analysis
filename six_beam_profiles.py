@@ -142,7 +142,10 @@ def wind_retrieval(files,config,lidar_height,save_path, replace):
         logging.info(f'Processing {os.path.basename(f)}')
         data=xr.open_dataset(f)
         Nb=len(data.beamID)
-        
+        if Nb != 6:
+            logging.error(f'Expected 6 beams, found {Nb} in {os.path.basename(f)}, skipping')
+            continue
+
         #cartesian angles
         alpha=(90-data.azimuth.mean(dim='scanID').values)%360
         beta=data.elevation.mean(dim='scanID').values
@@ -160,7 +163,10 @@ def wind_retrieval(files,config,lidar_height,save_path, replace):
         rws_avg_int=np.zeros((len(height),Nb))
         for i in range(Nb):
             rws_avg_int[:,i]=interp_gap(height, z[:,i], rws_avg[:,i],max_gap=config['max_gap'])
-    
+        nan_beams=np.where(np.isnan(rws_avg_int).any(axis=0))[0].tolist()
+        if nan_beams:
+            logging.warning(f'Mean RWS interpolation failed for beams {nan_beams} in {os.path.basename(f)}')
+
         #velocity vector
         A=[]
         for a,b in zip(alpha,beta):
@@ -168,7 +174,9 @@ def wind_retrieval(files,config,lidar_height,save_path, replace):
         A_inv=np.linalg.pinv(A)
             
         vel_vector=A_inv@rws_avg_int.T
-        
+        if np.isnan(vel_vector).any():
+            logging.warning(f'Mean wind reconstruction produced NaN at {np.isnan(vel_vector).sum()} height(s) in {os.path.basename(f)}')
+
         #store wind velocity
         U=vstack(U,vel_vector[0,:])
         V=vstack(V,vel_vector[1,:])
@@ -176,10 +184,14 @@ def wind_retrieval(files,config,lidar_height,save_path, replace):
         time=np.append(time,time_avg)
         
         #variance
+        # rws_var includes measurement noise; noise-subtraction is not applied [Sathe et al., 2015]
         rws_var=data.wind_speed.where(data.qc_wind_speed==0).var(dim='scanID').values
         rws_var_int=np.zeros((len(height),Nb))
         for i in range(Nb):
             rws_var_int[:,i]=interp_gap(height, z[:,i], rws_var[:,i],max_gap=config['max_gap'])
+        nan_beams=np.where(np.isnan(rws_var_int).any(axis=0))[0].tolist()
+        if nan_beams:
+            logging.warning(f'Variance RWS interpolation failed for beams {nan_beams} in {os.path.basename(f)}')
             
         #reynolds stresses
         B=[]
@@ -194,7 +206,9 @@ def wind_retrieval(files,config,lidar_height,save_path, replace):
         
         B_inv=np.linalg.pinv(B)
         RS=B_inv@rws_var_int.T
-            
+        if np.isnan(RS).any():
+            logging.warning(f'Reynolds stress reconstruction produced NaN at {np.isnan(RS).sum()} height(s) in {os.path.basename(f)}')
+
         uu=vstack(uu,RS[0,:])
         vv=vstack(vv,RS[1,:])
         ww=vstack(ww,RS[2,:])

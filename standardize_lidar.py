@@ -65,9 +65,15 @@ for channel in config['channels']:
         for f in files:
               utl.standardize_file(f,save_path_stand,config,logfile_main,sdate,edate)
     elif mode=='parallel':
-        args = [(files[i],save_path_stand, config,logfile_main,sdate,edate) for i in range(len(files))]
+        args = [(files[i],save_path_stand,config,logfile_main+f'.{i}',sdate,edate) for i in range(len(files))]
         with Pool() as pool:
             pool.starmap(utl.standardize_file, args)
+        for i in range(len(files)):
+            wlog=logfile_main+f'.{i}'
+            if os.path.isfile(wlog):
+                with open(wlog,'r') as src, open(logfile_main,'a') as dst:
+                    dst.write(src.read())
+                os.remove(wlog)
     else:
         raise BaseException(f"{mode} is not a valid processing mode (must be serial or parallel)")
     

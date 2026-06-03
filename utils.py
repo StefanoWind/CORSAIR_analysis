@@ -19,42 +19,6 @@ def cosd(x):
 def sind(x):
     return np.sin(np.radians(x))
 
-def dual_Doppler(x1,x2,y1,y2,min_range,max_range,x=None,y=None):
-    
-    #define grid
-    if x is None or y is None:
-        x=np.arange(-2000,2011,10)+x1
-        y=np.arange(-2000,2001,10)+y1
-    
-    DD=xr.Dataset()
-    DD['x']=xr.DataArray(data=x,coords={'x':x})
-    DD['y']=xr.DataArray(data=y,coords={'y':y})
-    
-    #define angles
-    DD['chi1']=np.degrees(np.arctan2(DD.y-y1,DD.x-x1))
-    DD['chi2']=np.degrees(np.arctan2(DD.y-y2,DD.x-x2))
-    DD['dchi']=angle_difference_deg(DD['chi1'],DD['chi2'])
-    DD['chi_avg']=np.degrees(np.arctan2(sind(DD.chi1)+sind(DD.chi2),cosd(DD.chi1)+cosd(DD.chi2)))
-    DD['alpha_u']=angle_difference_deg(DD['chi_avg'],0)
-    DD['alpha_v']=angle_difference_deg(DD['chi_avg'],90)
-
-    #uncertainties
-    Nu=(sind(DD['alpha_u']+DD['dchi']/2))**2+(sind(DD['alpha_u']-DD['dchi']/2))**2
-    Nv=(sind(DD['alpha_v']+DD['dchi']/2))**2+(sind(DD['alpha_v']-DD['dchi']/2))**2
-    D=sind(DD['dchi'])**2
-
-    DD['sigma_u']=(Nu/(D+10**-10))**0.5
-    DD['sigma_v']=(Nv/(D+10**-10))**0.5
-    
-    #exclude ranges
-    DD['range1']=((DD.x-x1)**2+(DD.y-y1)**2)**0.5
-    DD['range2']=((DD.x-x2)**2+(DD.y-y2)**2)**0.5
-      
-    DD=DD.where((DD['range1']>min_range)*(DD['range1']<max_range)*\
-                (DD['range2']>min_range)*(DD['range2']<max_range))
-     
-    return DD
-
 #%% Data processing
 def format_file(file,save_path,delete,config,logfile_main,replace):
     '''
@@ -176,8 +140,8 @@ def lisboa_file(file,config_path,logfile_main,sdate,edate,delete,replace):
                     Output.attrs["x_lidar"]=x_lidar-x0
                     Output.attrs["y_lidar"]=y_lidar-y0
                     Output.attrs['input_source']=os.path.basename(file)
-                    Output.attrs["contact"]= "stefano.letizia@nlr.gov"
-                    Output.attrs["institution"]= "NLR"
+                    Output.attrs["contact"]= "stefano.letizia@nrel.gov"
+                    Output.attrs["institution"]= "NREL"
                     Output.attrs["description"]= "Statistics of de-projected wind speed calculated through LiSBOA"
                     Output.attrs["reference"]= "Letizia et al. LiSBOA (LiDAR Statistical Barnes Objective Analysis) for optimal design of lidar scans and retrieval of wind statistics – Part 1: Theoretical framework. AMT, 14, 2065–2093, 2021, 10.5194/amt-14-2065-2021"
                     Output.attrs["history"]= (
@@ -224,10 +188,21 @@ def dual_doppler_reconstruction(Data1:xr.Dataset(),
        np.datetime64(Data1.attrs['end_time'])  <=np.datetime64(edate+'T23:59:59'):
         try:
             if not os.path.isfile(save_path) or replace:
-                
-                #check that coordinates match
-                if ((Data1.x==Data2.x)==False).any() or ((Data1.y==Data2.y)==False).any() or ((Data1.z==Data2.z)==False).any():
-                    print("Mimatching coordinates, aborting dual-Doppler reconstruction")
+
+                if 'z' not in Data1.dims or 'z' not in Data2.dims:
+                    msg = "dual_doppler_reconstruction requires 3D LiSBOA grids (z dimension required). Aborting."
+                    if logfile_main is not None:
+                        with open(logfile_main, 'a') as lf:
+                            lf.write(f"{datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S')} - ERROR - {msg}\n")
+                    else:
+                        print(msg)
+                    return None
+
+                #check that coordinates match (use allclose for float robustness)
+                if not (np.allclose(Data1.x.values, Data2.x.values, atol=1e-9) and
+                        np.allclose(Data1.y.values, Data2.y.values, atol=1e-9) and
+                        np.allclose(Data1.z.values, Data2.z.values, atol=1e-9)):
+                    print("Mismatching coordinates, aborting dual-Doppler reconstruction")
                     return None
                 
                 #get spherical coordinates for lidar 1
@@ -311,8 +286,8 @@ def dual_doppler_reconstruction(Data1:xr.Dataset(),
                 Output.attrs['site2']=Data2.attrs['site']
                 Output.attrs['origin_lat']=Data1.attrs['config_origin_lat']
                 Output.attrs['origin_lon']=Data1.attrs['config_origin_lon']
-                Output.attrs["contact"]= "stefano.letizia@nlr.gov"
-                Output.attrs["institution"]= "NLR"
+                Output.attrs["contact"]= "stefano.letizia@nrel.gov"
+                Output.attrs["institution"]= "NREL"
                 Output.attrs["description"]= "Statistics of de-projected wind speed calculated through LiSBOA"
                 Output.attrs["reference"]= "Letizia et al. LiSBOA (LiDAR Statistical Barnes Objective Analysis) for optimal design of lidar scans and retrieval of wind statistics – Part 1: Theoretical framework. AMT, 14, 2065–2093, 2021, 10.5194/amt-14-2065-2021"
                 Output.attrs["history"]= (
@@ -337,27 +312,96 @@ def dual_doppler_reconstruction(Data1:xr.Dataset(),
                 print(f"{datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S')} - ERROR - Error in creation of dual-Doppler file {os.path.basename(save_path)}: \n")
             return None
     else:
+        if logfile_main is not None:
+            with open(logfile_main, 'a') as lf:
+                lf.write(f"{datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S')} - INFO - Skipping dual-Doppler reconstruction: start_time outside [{sdate}, {edate}].\n")
         return None
-        
-   
+
+
+def dual_doppler_error(x_lidar1: float, y_lidar1: float,
+                       x_lidar2: float, y_lidar2: float,
+                       x: np.ndarray, y: np.ndarray, z: np.ndarray,
+                       WS: float, WD: float,
+                       sigma_rws: float = 1,
+                       sigma_w: float = 1) -> xr.Dataset:
+
+    coords = {'x': x, 'y': y, 'z': z}
+
+    # wind components from speed and meteorological direction
+    U = -WS * np.sin(np.radians(WD))
+    V = -WS * np.cos(np.radians(WD))
+
+    x_xr = xr.DataArray(x, dims='x', coords={'x': x})
+    y_xr = xr.DataArray(y, dims='y', coords={'y': y})
+    z_xr = xr.DataArray(z, dims='z', coords={'z': z})
+
+    def forward_rws(x_lidar, y_lidar):
+        dx = x_xr - x_lidar
+        dy = y_xr - y_lidar
+        r = (dx**2 + dy**2 + z_xr**2)**0.5
+        sin_ele = (z_xr / (r + 1e-16)).transpose('x', 'y', 'z')
+        cos_ele = (1 - sin_ele**2)**0.5
+        cos_azi = dx / (r + 1e-16) / cos_ele
+        sin_azi = (dy / (r + 1e-16) / cos_ele).transpose('x', 'y', 'z')
+        return (cos_ele * (cos_azi * U + sin_azi * V)).transpose('x', 'y', 'z')
+
+    dummy_attrs = {
+        'start_time': '2000-01-01T00:00:00',
+        'end_time':   '2000-01-01T00:00:00',
+        'site': '',
+        'config_origin_lat': 0,
+        'config_origin_lon': 0,
+    }
+
+    Data1 = xr.Dataset({'rws_avg': forward_rws(x_lidar1, y_lidar1)}, coords=coords)
+    Data1.attrs = {**dummy_attrs, 'x_lidar': float(x_lidar1), 'y_lidar': float(y_lidar1)}
+
+    Data2 = xr.Dataset({'rws_avg': forward_rws(x_lidar2, y_lidar2)}, coords=coords)
+    Data2.attrs = {**dummy_attrs, 'x_lidar': float(x_lidar2), 'y_lidar': float(y_lidar2)}
+
+    Output = dual_doppler_reconstruction(Data1, Data2, sigma_rws=sigma_rws, sigma_w=sigma_w)
+
+    if Output is None:
+        return None
+    return Output[['sigma_U', 'sigma_V', 'sigma_WS', 'sigma_WD']]
+
 
 #%% Graphics
 def matrix_plt(x,y,f,cmap,vmin,vmax):
     '''
     Plot matrix with color and display values
     '''
-    pc=plt.pcolor(x,y,f.T,cmap=cmap,vmin=vmin,vmax=vmax)
-    ax=plt.gca()
-    for i in range(len(x)):
-        for j in range(len(y)):
-            if ~np.isnan(f[i,j]):
-                ax.text(i,j, f"{f[i,j]:.1f}", 
-                        ha='center', va='center', color='k', fontsize=10,fontweight='bold')
-            
+    # trim always-NaN borders: last Lidar-1 column and first Lidar-2 row
+    x_trim = x[:-1]
+    y_trim = y[1:]
+    f_trim = f[:-1, 1:]
+    nx, ny = len(x_trim), len(y_trim)
+
+    pc = plt.pcolor(np.arange(nx), np.arange(ny), f_trim.T,
+                    cmap=cmap, vmin=vmin, vmax=vmax, shading='auto')
+    ax = plt.gca()
+
+    # separation lines between cells
+    for k in range(1, nx):
+        ax.axvline(k - 0.5, color='w', linewidth=1.5, zorder=3)
+    for k in range(1, ny):
+        ax.axhline(k - 0.5, color='w', linewidth=1.5, zorder=3)
+
+    for i in range(nx):
+        for j in range(ny):
+            if ~np.isnan(f_trim[i, j]):
+                ax.text(i, j, f"{f_trim[i, j]:.2f}",
+                        ha='center', va='center', color='k', fontsize=10, fontweight='bold')
+
+    ax.set_xticks(np.arange(nx))
+    ax.set_xticklabels(x_trim)
+    ax.set_yticks(np.arange(ny))
+    ax.set_yticklabels(y_trim)
+
     return pc
 
 def aerial_map(x,y,lat0,lon0,zoom=15,color='r',markersize=10,alpha=1,
-               xmin=None,xmax=None,ymin=None,ymax=None):
+               xmin=None,xmax=None,ymin=None,ymax=None,ax=None):
     '''
     Draw aerail map and superpose points
     '''
@@ -400,8 +444,11 @@ def aerial_map(x,y,lat0,lon0,zoom=15,color='r',markersize=10,alpha=1,
     gdf_web = gdf.to_crs(epsg=3857)
    
     
-    fig, ax = plt.subplots(figsize=(10, 10))
-    
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(10, 10))
+    else:
+        fig = ax.figure
+
     # Plot your relative points
     gdf_web.plot(ax=ax, color=color, markersize=markersize, alpha=alpha,zorder=3)
     

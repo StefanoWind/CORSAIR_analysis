@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3)",
+      "Bash(python -c ' *)",
+      "Bash(python validate_lidar_M2.py)",
+      "Bash(powershell -Command \"Get-Content six_beam_profiles.py | Select-String -Pattern 'RS\\\\[' | Select-Object -First 10\")"
+    ]
+  }
+}
