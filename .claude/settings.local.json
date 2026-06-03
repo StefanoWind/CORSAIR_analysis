@@ -4,7 +4,9 @@
       "Bash(python3)",
       "Bash(python -c ' *)",
       "Bash(python validate_lidar_M2.py)",
-      "Bash(powershell -Command \"Get-Content six_beam_profiles.py | Select-String -Pattern 'RS\\\\[' | Select-Object -First 10\")"
+      "Bash(powershell -Command \"Get-Content six_beam_profiles.py | Select-String -Pattern 'RS\\\\[' | Select-Object -First 10\")",
+      "Bash(python -c \"import subprocess; result=subprocess.run\\(['7z','l','data/corsair/s40.lidar.z02.00/s40.lidar.z01.0020260520.001000.sta.7z'],capture_output=True,text=True\\); print\\(result.stdout[:3000]\\); print\\(result.stderr[:500]\\)\")",
+      "Bash(pip install *)"
     ]
   }
 }

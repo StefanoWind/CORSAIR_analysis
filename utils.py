@@ -140,8 +140,8 @@ def lisboa_file(file,config_path,logfile_main,sdate,edate,delete,replace):
                     Output.attrs["x_lidar"]=x_lidar-x0
                     Output.attrs["y_lidar"]=y_lidar-y0
                     Output.attrs['input_source']=os.path.basename(file)
-                    Output.attrs["contact"]= "stefano.letizia@nrel.gov"
-                    Output.attrs["institution"]= "NREL"
+                    Output.attrs["contact"]= "stefano.letizia@nlr.gov"
+                    Output.attrs["institution"]= "National Laboratory of the Rockies"
                     Output.attrs["description"]= "Statistics of de-projected wind speed calculated through LiSBOA"
                     Output.attrs["reference"]= "Letizia et al. LiSBOA (LiDAR Statistical Barnes Objective Analysis) for optimal design of lidar scans and retrieval of wind statistics – Part 1: Theoretical framework. AMT, 14, 2065–2093, 2021, 10.5194/amt-14-2065-2021"
                     Output.attrs["history"]= (
