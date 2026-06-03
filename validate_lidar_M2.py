@@ -29,7 +29,7 @@ source_m2     = os.path.join(cd, 'data/m2.20260401.20260601.csv')
 source_layout = os.path.join(cd, 'data/CORSAIR_layout.xlsx')
 
 tower_name = 'M2'
-heights_m2 = np.array([2, 5, 10, 20, 50, 80], dtype=float)  # [m] M2 measurement heights
+heights_m2 = np.array([50, 80], dtype=float)  # [m] M2 measurement heights
 utc_offset = 7  # M2 timestamps are MST = UTC-7
 
 #%% Initialization
@@ -110,7 +110,7 @@ t_lidar = np.array(t_lidar)
 os.makedirs(os.path.join(cd, 'figures', 'validate_DD_M2'), exist_ok=True)
 
 nh    = len(heights_m2)
-ncols = 3
+ncols = 1
 nrows = int(np.ceil(nh / ncols))
 
 # M2 time window: ±1 h around the lidar scan period
@@ -133,11 +133,11 @@ for varname, lidar_vals, m2_col_fmt, ylabel, ylim in plot_cfg:
 
         # M2 1-min time series
         ax.plot(M2_plot.index, M2_plot[m2_col],
-                color='gray', lw=0.8, label='M2 (1-min)')
+                color='k', lw=0.8, label='M2 (1-min)')
 
         # Lidar scan-mean scatter
         ax.scatter(t_lidar, lidar_vals[:, j],
-                   color='C0', s=60, zorder=5, label='Lidar DD')
+                   color='b', s=10, zorder=5, label='Lidar DD')
 
         ax.set_title(f'z = {h} m')
         ax.set_ylabel(ylabel)
