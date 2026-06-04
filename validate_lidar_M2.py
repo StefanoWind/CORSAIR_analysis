@@ -31,7 +31,7 @@ source_topo   = os.path.join(cd, 'data/FC_topo_v2.nc')
 
 tower_name = 'M2'
 utc_offset = 7    # M2 timestamps are MST = UTC-7
-avg_hours  = 4    # [h] bin width for the vertical profile plot
+avg_hours  = 6   # [h] bin width for the vertical profile plot
 max_ci     = 1    # [m/s] maximum bootstrap CI width; wider bins set to NaN
 heights_plot=[50,80]
 
@@ -53,7 +53,7 @@ def mean_ci(f, max_ci, p_value=0.05, perc_lim=[5, 95]):
     f_avg = filt_stat(f, np.nanmean, perc_lim=perc_lim)
     f_low = filt_BS_stat(f, np.nanmean, perc_lim=perc_lim, p_value=p_value / 2 * 100)
     f_top = filt_BS_stat(f, np.nanmean, perc_lim=perc_lim, p_value=(1 - p_value / 2) * 100)
-    if f_top - f_low > max_ci:
+    if f_top - f_low > max_ci or np.isnan(f_top-f_low):
         f_avg = np.nan
     return f_avg, f_low, f_top
 

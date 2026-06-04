@@ -26,16 +26,18 @@ warnings.filterwarnings('ignore')
 if len(sys.argv)==1:
     sdate='2026-01-01' #start date
     edate='2026-12-31' #end date
-    replace=False #replace existing files
+    delete=False #delete source files?
+    replace=False #replace existing files"
     path_config=os.path.join(cd,'configs/config_corsair.yaml') #config path
     mode='serial' #processing mofe (serial or parallel)
     
 else:
     sdate=sys.argv[1]
     edate=sys.argv[2]
-    replace=sys.argv[3]=="True"
-    path_config=sys.argv[4]
-    mode=sys.argv[5]
+    delete=sys.argv[3]=="True"
+    replace=sys.argv[4]=="True"
+    path_config=sys.argv[5]
+    mode=sys.argv[6]
     
 #%% Initalization
 
@@ -89,7 +91,7 @@ def interp_gap(xs,x,y,max_gap=1):
     return y_int
     
 
-def wind_retrieval(files,config,lidar_height,save_path, replace):
+def wind_retrieval(files, config, lidar_height, save_path, delete, replace):
     '''
     Wind reconstruction for list of files
     '''
@@ -216,6 +218,9 @@ def wind_retrieval(files,config,lidar_height,save_path, replace):
         uw=vstack(uw,RS[4,:])
         vw=vstack(vw,RS[5,:])
         
+        if delete:
+            os.remove(f)
+        
     #output
     Output=xr.Dataset()
     Output['U']=xr.DataArray(data=U,coords={'time':time,'height':height},
@@ -337,10 +342,10 @@ for channel in config['channels_six_beam']:
     if mode=='serial':
         for d in days:
             if len(files[d])>1:
-                Output=wind_retrieval(files[d],config,config['lidar_height'][channel],save_path,replace)
+                Output=wind_retrieval(files[d],config,config['lidar_height'][channel],save_path,delete,replace)
     
     elif mode=='parallel':
-        args = [(files[d], config,config['lidar_height'][channel], save_path,replace) for d in days]
+        args = [(files[d], config,config['lidar_height'][channel], save_path,delete,replace) for d in days]
         with Pool() as pool:
             pool.starmap(wind_retrieval, args)
     else:

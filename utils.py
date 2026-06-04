@@ -550,70 +550,75 @@ def plot_wind_map(Data,
     levels=np.unique(np.round(np.linspace(np.nanpercentile(Data.WS,5)-0.5, 
                                           np.nanpercentile(Data.WS,95)+0.5, 20),1))
     
-    ctr=0
-    for iz in heights:
-        ax = fig.add_subplot(gs[int(ctr/2),ctr%(ncols-1)])
-        ax.set_facecolor((0,0,0,0.2))
-        
-        #heatmap
-        cf=plt.contourf(Data.x,Data.y,Data.WS.isel(z=iz).T,levels, cmap='coolwarm',extend='both')
-        plt.contour(    Data.x,Data.y,Data.WS.isel(z=iz).T,levels, color='k',alpha=0.25,linewidths=1,extend='both')
-        
-        #quiver
-        x_q=Data.x.values[::stride]
-        y_q=Data.y.values[::stride]
-        u_q = Data.U.isel(z=iz)[::stride, ::stride]
-        v_q = Data.V.isel(z=iz)[::stride, ::stride]
-        
-        ax.quiver(x_q,y_q,         
-            u_q.values.T,                     
-            v_q.values.T,                   
-            angles="xy",
-            pivot='middle',
-            scale=levels[-1]/100,                              
-            scale_units="xy",
-            width=0.003,
-            color="k",
-            alpha=0.8)
-        
-        #layout
-        for m in markers.keys():
-            sel=Layout['Description']==m
-            xp=Layout[sel]['x'].values-x0
-            yp=Layout[sel]['y'].values-y0
-            try:
-                plt.plot(xp,yp,'xk', marker=markers[m], markersize=10, color='g',label=m)
-            except ValueError as e:
-                if "Unrecognized marker style" in str(e):
-                    plt.plot(xp,yp,'xk', marker=eval(markers[m]), markersize=10, color='g',label=m)
-                    
-        #decorations
-        plt.xlim([Data.x.min(),Data.x.max()])
-        plt.ylim([Data.y.min(),Data.y.max()])
-        
-        plt.grid(alpha=0.5)
-        ax.set_aspect('equal')
-        plt.xlabel(r'$x$ [m]')
-        plt.ylabel(r'$y$ [m]')
-        
-        if ctr==0:
-            plt.legend()
-        
-        plt.title(r'$z='+str(Data.z.values[iz]).replace('.0','')+'$ m a.g.l.')
-        ctr+=1
-        
-    cax=fig.add_subplot(gs[:,-1])
-    plt.colorbar(cf,cax,label=r'LiSBOA-averaged horizontal wind speed [m s$^{-1}$]')
+    if len(levels)>=2:
     
-    plt.suptitle('LiSBOA-averaged horizontal velocity on '+Data.attrs['start_time'][:10]+\
-                 '\n Synthesized from: '+Data.attrs['site1'] +' and ' + Data.attrs['site2'] \
-                +'\n Time (UTC): '+Data.attrs['start_time'][11:19]+' - '+Data.attrs['end_time'][11:19])
+        ctr=0
+        for iz in heights:
+            ax = fig.add_subplot(gs[int(ctr/2),ctr%(ncols-1)])
+            ax.set_facecolor((0,0,0,0.2))
+            
+            #heatmap
+            cf=plt.contourf(Data.x,Data.y,Data.WS.isel(z=iz).T,levels, cmap='coolwarm',extend='both')
+            plt.contour(    Data.x,Data.y,Data.WS.isel(z=iz).T,levels, color='k',alpha=0.25,linewidths=1,extend='both')
+            
+            #quiver
+            x_q=Data.x.values[::stride]
+            y_q=Data.y.values[::stride]
+            u_q = Data.U.isel(z=iz)[::stride, ::stride]
+            v_q = Data.V.isel(z=iz)[::stride, ::stride]
+            
+            ax.quiver(x_q,y_q,         
+                u_q.values.T,                     
+                v_q.values.T,                   
+                angles="xy",
+                pivot='middle',
+                scale=levels[-1]/100,                              
+                scale_units="xy",
+                width=0.003,
+                color="k",
+                alpha=0.8)
+            
+            #layout
+            for m in markers.keys():
+                sel=Layout['Description']==m
+                xp=Layout[sel]['x'].values-x0
+                yp=Layout[sel]['y'].values-y0
+                try:
+                    plt.plot(xp,yp,'xk', marker=markers[m], markersize=10, color='g',label=m)
+                except ValueError as e:
+                    if "Unrecognized marker style" in str(e):
+                        plt.plot(xp,yp,'xk', marker=eval(markers[m]), markersize=10, color='g',label=m)
+                        
+            #decorations
+            plt.xlim([Data.x.min(),Data.x.max()])
+            plt.ylim([Data.y.min(),Data.y.max()])
+            
+            plt.grid(alpha=0.5)
+            ax.set_aspect('equal')
+            plt.xlabel(r'$x$ [m]')
+            plt.ylabel(r'$y$ [m]')
+            
+            if ctr==0:
+                plt.legend()
+            
+            plt.title(r'$z='+str(Data.z.values[iz]).replace('.0','')+'$ m a.g.l.')
+            ctr+=1
+            
+        cax=fig.add_subplot(gs[:,-1])
+        plt.colorbar(cf,cax,label=r'LiSBOA-averaged horizontal wind speed [m s$^{-1}$]')
         
-    plt.tight_layout()
-        
-    if save_path is not None:
-         fig.savefig(save_path)
-    plt.close()
+        plt.suptitle('LiSBOA-averaged horizontal velocity on '+Data.attrs['start_time'][:10]+\
+                     '\n Synthesized from: '+Data.attrs['site1'] +' and ' + Data.attrs['site2'] \
+                    +'\n Time (UTC): '+Data.attrs['start_time'][11:19]+' - '+Data.attrs['end_time'][11:19])
+            
+        plt.tight_layout()
+            
+        if save_path is not None:
+             fig.savefig(save_path)
+        plt.close()
+    else:
+        print('Not enough levels to generate wind map.',flush=True)
+        return None
 
 
 def three_point_star():
