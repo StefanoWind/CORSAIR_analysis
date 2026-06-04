@@ -52,14 +52,14 @@ for t1,t2 in zip(time_bin[:-1],time_bin[1:]):
     for channel in config['channels']:
         
         #define query
-        if config['ext1']=='':
+        if config['ext1'][channel]=='':
             _filter = {
                 'Dataset': channel,
                 'date_time': {
                     'between':  [datetime.strftime(t1, '%Y%m%d%H%M%S'),
                                  datetime.strftime(t2-timedelta(seconds=1), '%Y%m%d%H%M%S')]
                 },
-                'file_type': config['format']}
+                'file_type': config['format'][channel]}
         else:
             _filter = {
                 'Dataset': channel,
@@ -67,8 +67,8 @@ for t1,t2 in zip(time_bin[:-1],time_bin[1:]):
                     'between':  [datetime.strftime(t1, '%Y%m%d%H%M%S'),
                                  datetime.strftime(t2-timedelta(seconds=1), '%Y%m%d%H%M%S')]
                 },
-                'file_type': config['format'],
-                'ext1':config['ext1'], 
+                'file_type': config['format'][channel],
+                'ext1':config['ext1'][channel], 
             }
         
         #find missing files
