@@ -45,17 +45,19 @@ warnings.filterwarnings('ignore')
 
 #%% Inputs
 if len(sys.argv) == 1:
-    sdate = '1970-01-01'
-    edate = '2070-01-01'
-    replace = False
-    path_config = os.path.join(cd, 'configs/config_corsair.yaml')
-    mode = 'serial'
+    sdate = '1970-01-01' #start date
+    edate = '2070-01-01' #end date
+    delete=False #delete input files?
+    replace = False #replace existing files?
+    path_config = os.path.join(cd, 'configs/config_corsair.yaml') #config path
+    mode = 'serial' #serial or parallel
 else:
-    sdate = sys.argv[1]
-    edate = sys.argv[2]
-    replace = sys.argv[3] == 'True'
-    path_config = sys.argv[4]
-    mode = sys.argv[5]
+    sdate=sys.argv[1]
+    edate=sys.argv[2]
+    delete=sys.argv[3]=="True"
+    replace=sys.argv[4]=="True"
+    path_config=sys.argv[5]
+    mode=sys.argv[6]#
 
 #%% Initialization
 with open(path_config, 'r') as fid:
@@ -182,7 +184,7 @@ def parse_gps(gps_str):
     lon = float(lon_m.group(1)) * (-1 if lon_m.group(2) == 'W' else 1) if lon_m else np.nan
     return lat, lon
 
-def format_sta(f, save_path, replace):
+def format_sta(f, save_path, delete, replace):
     bn = os.path.basename(f)
     # Input:  s40.lidar.z01.0020260520.001000.sta.7z
     # Output: s40.lidar.z01.c0.20260520.001000.sta.nc
@@ -323,6 +325,9 @@ def format_sta(f, save_path, replace):
     logging.info(f'Saved {out_name}')
 
     plot_ws_wd(ds, out_nc.replace('.nc', '.ws_wd.png'))
+    
+    if delete:
+        os.remove(f)
 
 
 def plot_ws_wd(ds, out_path):
@@ -366,7 +371,7 @@ def plot_ws_wd(ds, out_path):
     logging.info(f'Saved plot {os.path.basename(out_path)}')
 
 
-def format_rtd(f, save_path, replace):
+def format_rtd(f, save_path, delete, replace):
     bn = os.path.basename(f)
     # Input:  s40.lidar.z02.00.20260531.000000.rtd.7z
     # Output: s40.lidar.z02.b0.20260531.000000.rtd.nc
@@ -508,6 +513,9 @@ def format_rtd(f, save_path, replace):
     logging.info(f'Saved {out_name}')
 
     plot_ws_wd(ds, out_nc.replace('.nc', '.ws_wd.png'))
+    
+    if delete:
+        os.remove(f)
 
 
 #%% Main
@@ -530,11 +538,15 @@ for channel in config.get('channels_windcube', []):
     if mode == 'serial':
         for f in sta_files:
             format_sta(f, sta_save, replace)
+            if delete:
+                os.remove(f)
         for f in rtd_files:
             format_rtd(f, rtd_save, replace)
+            if delete:
+                os.remove(f)
     elif mode == 'parallel':
         with Pool() as pool:
-            pool.starmap(format_sta, [(f, sta_save, replace) for f in sta_files])
-            pool.starmap(format_rtd, [(f, rtd_save, replace) for f in rtd_files])
+            pool.starmap(format_sta, [(f, sta_save, delete, replace) for f in sta_files])
+            pool.starmap(format_rtd, [(f, rtd_save, delete, replace) for f in rtd_files])
     else:
         raise ValueError(f'{mode} is not a valid processing mode (must be serial or parallel)')

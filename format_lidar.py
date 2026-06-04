@@ -37,14 +37,14 @@ if len(sys.argv)==1:
     delete=False #delete input files?
     replace=False #replace existing files?
     path_config=os.path.join(cd,'configs/config_corsair.yaml') #config path
-    mode='serial'#serial or parallel
+    mode='serial' #serial or parallel
 else:
     sdate=sys.argv[1]
     edate=sys.argv[2]
     delete=sys.argv[3]=="True"
     replace=sys.argv[4]=="True"
     path_config=sys.argv[5]
-    mode=sys.argv[6]#
+    mode=sys.argv[6]
     
 #%% Initalization
 
