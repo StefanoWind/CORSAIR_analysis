@@ -12,6 +12,8 @@ import os
 cd=os.path.dirname(__file__)
 import sys
 import warnings
+import numpy as np
+import glob
 from datetime import datetime
 from datetime import timedelta
 import yaml
@@ -23,7 +25,7 @@ warnings.filterwarnings('ignore')
 
 #users inputs
 if len(sys.argv)==1:
-    t_start='2026-04-01' #start date
+    t_start='2026-04-10' #start date
     t_end='2026-04-26' #end date
     path_config=os.path.join(cd,'configs/config_corsair.yaml') #config path
 else:
@@ -49,6 +51,7 @@ time_bin=[datetime.strptime(t_start, '%Y-%m-%d') + timedelta(hours=config['time_
 for t1,t2 in zip(time_bin[:-1],time_bin[1:]):
     for channel in config['channels']:
         
+        #define query
         if config['ext1']=='':
             _filter = {
                 'Dataset': channel,
@@ -68,7 +71,20 @@ for t1,t2 in zip(time_bin[:-1],time_bin[1:]):
                 'ext1':config['ext1'], 
             }
         
-        a2e.download_with_order(_filter, path=os.path.join(cd,'data',channel), replace=False)
+        #find missing files
+        search=a2e.search(_filter)
+        remote_files=np.array([s['Filename'] for s in search])
+        local_files=np.array(glob.glob(os.path.join(cd,'data',channel,f'*{config["ext1"]}*{config["format"]}')))
+        local_files=np.array([os.path.basename(f) for f in local_files])
+        missing_files=np.setdiff1d(remote_files,local_files)
+        
+        #dowanload missing files
+        new_files=[]
+        for s in search:
+            if any(s['Filename']==missing_files):
+                new_files.append(s)
+                
+        a2e.download_files(new_files, path=os.path.join(cd,'data',channel), replace=False)
                 
         
         
