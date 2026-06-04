@@ -12,4 +12,5 @@ __pycache__
 *.xlsx
 *.txt
 *.7z
+*.alm
 build/
