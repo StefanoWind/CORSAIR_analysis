@@ -88,7 +88,7 @@ for t1,t2 in zip(time_bin[:-1],time_bin[1:]):
             a2e.download_files(new_files, path=os.path.join(cd,'data',channel), replace=False)
         else:
             print((f'No new files in {channel} from {datetime.strftime(t1,"%Y-%m-%d %H:%M:%S")} '
-                   f'to {datetime.strftime(t2,"%Y-%m-%d %H:%M:%S")}'))
+                   f'to {datetime.strftime(t2,"%Y-%m-%d %H:%M:%S")}'),flush=True)
                 
         
         
