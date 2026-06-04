@@ -58,7 +58,7 @@ with open(path_config, 'r') as fid:
 
 #initialize main logger
 logfile_main=os.path.join(cd,'log',datetime.strftime(datetime.now(), '%Y%m%d.%H%M%S'))+'_errors.log'
-os.makedirs('log',exist_ok=True)
+os.makedirs(os.path.join(cd,'log'),exist_ok=True)
 
 #%% Main
 

@@ -26,11 +26,14 @@ matplotlib.rcParams['font.size'] = 14
 source_dd     = os.path.join(cd, 'data/corsair/fc.ddoppler.z01.c1/*.nc')
 source_layout = os.path.join(cd, 'data/CORSAIR_layout.xlsx')
 
-ws_range   = [5, 15]    # [m/s] volume-avg WS selection range
-wd_sector  = [200, 300] # [deg] volume-avg WD sector (handles wrap-around)
+ws_range   = [0, 25]    # [m/s] volume-avg WS selection range
+wd_sector  = [240, 300] # [deg] volume-avg WD sector (handles wrap-around)
+max_sigma_ws=1
+max_sigma_wd=10
+max_ws=2
 max_ws_std = 3.0        # [m/s] max spatial std of WS (uniformity criterion)
 max_wd_std = 30.0       # [deg] max circular std of WD (uniformity criterion)
-heights_plot = [0, 4, 8, 12]  # height indices for plot_wind_map
+heights_plot = [0, 1, 2, 4]  # height indices for plot_wind_map
 stride       = 3
 max_sigma    = {'U': 100, 'V': 100, 'WS': 100, 'WD': 360}  # no QC on composite
 markers      = {'Wind turbine': 'star_marker', 'Met tower': '^'}
@@ -47,6 +50,7 @@ wd_stds = np.full(n_files, np.nan)
 
 for i, f in enumerate(files):
     ds = xr.open_dataset(f)
+    ds=ds.where(ds.sigma_WS<max_sigma_ws).where(ds.sigma_WD<max_sigma_wd)
     ws = ds['WS'].values.ravel()
     u  = ds['U'].values.ravel()
     v  = ds['V'].values.ravel()
@@ -112,6 +116,10 @@ for i, (f, ws_s) in enumerate(zip(sel_files, sel_ws_avgs)):
     WS_stack[i] = ds['WS'].values / ws_s
     ds.close()
 
+WS_stack[WS_stack>max_ws]=np.nan
+U_stack[WS_stack>max_ws]=np.nan
+V_stack[WS_stack>max_ws]=np.nan
+
 U_comp  = np.nanmean(U_stack,  axis=0)
 V_comp  = np.nanmean(V_stack,  axis=0)
 WS_comp = np.nanmean(WS_stack, axis=0)
@@ -160,4 +168,6 @@ utl.plot_wind_map(Comp,
                   save_path=save_path,
                   stride=stride,
                   path_layout=source_layout,
-                  markers=markers)
+                  markers=markers,
+                  perc_min=10,
+                  perc_max=90)
