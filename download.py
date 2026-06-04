@@ -74,7 +74,7 @@ for t1,t2 in zip(time_bin[:-1],time_bin[1:]):
         #find missing files
         search=a2e.search(_filter)
         remote_files=np.array([s['Filename'] for s in search])
-        local_files=np.array(glob.glob(os.path.join(cd,'data',channel,f'*{config["ext1"]}*{config["format"]}')))
+        local_files=np.array(glob.glob(os.path.join(cd,'data',channel,f'*{config["ext1"][channel]}*{config["format"][channel]}')))
         local_files=np.array([os.path.basename(f) for f in local_files])
         missing_files=np.setdiff1d(remote_files,local_files)
         
