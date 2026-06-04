@@ -355,7 +355,7 @@ def plot_ws_wd(ds, out_path):
     ax1.set_title(f'Wind speed and direction at {ds.attrs["location_id"]} on {str(times[0])[:10]}')
     plt.setp(ax1.get_xticklabels(), visible=False)
 
-    ax2.set_ylabel('Wind Direction [$^\circ$]')
+    ax2.set_ylabel(r'Wind Direction [$^\circ$]')
     ax2.set_ylim(0, 360)
     ax2.set_yticks([0, 90, 180, 270, 360])
     ax2.grid(True, alpha=0.3)
