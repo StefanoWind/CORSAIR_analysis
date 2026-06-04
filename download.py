@@ -83,8 +83,12 @@ for t1,t2 in zip(time_bin[:-1],time_bin[1:]):
         for s in search:
             if any(s['Filename']==missing_files):
                 new_files.append(s)
-                
-        a2e.download_files(new_files, path=os.path.join(cd,'data',channel), replace=False)
+        
+        if len(new_files)>0:
+            a2e.download_files(new_files, path=os.path.join(cd,'data',channel), replace=False)
+        else:
+            print((f'No new files in {channel} from {datetime.strftime(t1,"%Y-%m-%d %H:%M:%S")} '
+                   f'to {datetime.strftime(t2,"%Y-%m-%d %H:%M:%S")}'))
                 
         
         
