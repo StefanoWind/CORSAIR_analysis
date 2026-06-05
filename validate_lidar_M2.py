@@ -15,17 +15,18 @@ import matplotlib
 import matplotlib.dates as mdates
 import utm
 import warnings
+import utils as utl
 
 warnings.filterwarnings('ignore')
 plt.close('all')
 
 matplotlib.rcParams['font.family'] = 'serif'
 matplotlib.rcParams['mathtext.fontset'] = 'cm'
-matplotlib.rcParams['font.size'] = 14
+matplotlib.rcParams['font.size'] = 12
 
 #%% Inputs
 source_dd  = os.path.join(cd, 'data/corsair/fc.ddoppler.z01.c1/*.nc')
-source_m2     = os.path.join(cd, 'data/m2.20260401.20260601.csv')
+source_m2     = os.path.join(cd, 'data/m2.20260125.20260603.csv')
 source_layout = os.path.join(cd, 'data/CORSAIR_layout.xlsx')
 source_topo   = os.path.join(cd, 'data/FC_topo_v2.nc')
 
@@ -33,28 +34,6 @@ utc_offset = 7    # M2 timestamps are MST = UTC-7
 avg_hours  = 6   # [h] bin width for the vertical profile plot
 max_ci     = 1    # [m/s] maximum bootstrap CI width; wider bins set to NaN
 heights_plot=[50,80]
-
-#%% Functions
-def filt_stat(x, func, perc_lim=[5, 95]):
-    x = x.copy()
-    x = x[(x >= np.nanpercentile(x, perc_lim[0])) & (x <= np.nanpercentile(x, perc_lim[1]))]
-    return func(x)
-
-def filt_BS_stat(x, func, p_value=5, M_BS=100, min_N=10, perc_lim=[5, 95]):
-    x = x.copy()
-    x = x[(x >= np.nanpercentile(x, perc_lim[0])) & (x <= np.nanpercentile(x, perc_lim[1]))]
-    if len(x) < min_N:
-        return np.nan
-    x_BS = x[np.random.randint(0, len(x), size=(M_BS, len(x)))]
-    return np.nanpercentile(func(x_BS, axis=1), p_value)
-
-def mean_ci(f, max_ci, p_value=0.05, perc_lim=[5, 95]):
-    f_avg = filt_stat(f, np.nanmean, perc_lim=perc_lim)
-    f_low = filt_BS_stat(f, np.nanmean, perc_lim=perc_lim, p_value=p_value / 2 * 100)
-    f_top = filt_BS_stat(f, np.nanmean, perc_lim=perc_lim, p_value=(1 - p_value / 2) * 100)
-    if f_top - f_low > max_ci or np.isnan(f_top-f_low):
-        f_avg = np.nan
-    return f_avg, f_low, f_top
 
 #%% Initialization
 
@@ -174,7 +153,7 @@ plot_cfg = [
 ]
 
 for varname, dd_vals, m2_vals, ylabel, ylim in plot_cfg:
-    fig, axes = plt.subplots(len(heights_plot), 1, figsize=(18, 10), sharex=True, squeeze=False)
+    fig, axes = plt.subplots(len(heights_plot), 1, figsize=(18, 8), sharex=True, squeeze=False)
     for j, h in enumerate(heights_plot):
         ax = axes[j, 0]
         col = (f'Avg Wind Speed @ {h}m [m/s]' if varname == 'WS'
@@ -185,16 +164,17 @@ for varname, dd_vals, m2_vals, ylabel, ylim in plot_cfg:
         ax.scatter(t_dd, m2_vals.sel(height=h).values, color='k', s=10, zorder=2,alpha=0.5, label='M2 (30 min)')
         ax.scatter(t_dd, dd_vals.sel(height=h).values, color='b', s=10, zorder=3, label='Lidar DD (30 min)')
         ax.set_title(f'z = {h} m')
+        ax.set_xlim([t_dd[0],t_dd[-1]])
         ax.set_ylabel(ylabel)
         ax.set_ylim(ylim)
         ax.grid(alpha=0.4)
         if j == 0:
-            ax.legend(fontsize=11)
+            ax.legend(fontsize=11,loc='upper right')
     axes[-1, 0].xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
     fig.suptitle(f'Lidar DD vs {'M2'} — {varname}', fontsize=16)
     fig.tight_layout()
     fig.savefig(os.path.join(cd, 'figures', 'validate_DD_M2', f'{varname}_timeseries.png'),
-                dpi=150, bbox_inches='tight')
+                dpi=300, bbox_inches='tight')
 
 #%% Plot 2 — Error histograms at each M2 height
 
@@ -208,25 +188,29 @@ for j, h in enumerate(heights_plot):
         (dWS.sel(height=h).values, r'$\Delta$WS [m s$^{-1}$]', 'steelblue', ' m/s', '.2f'),
         (dWD.sel(height=h).values, r'$\Delta$WD [$^\circ$]',    'coral',     '°',    '.1f'),
     ]):
-        ok   = np.isfinite(d)
-        bias = np.mean(d[ok])
-        rms  = np.sqrt(np.mean(d[ok]**2))
-        ax   = axes_h[row, j]
-        ax.hist(d[ok], bins=30, color=color, edgecolor='k', linewidth=0.5)
+        ok  = np.isfinite(d)
+        ax  = axes_h[row, j]
         ax.axvline(0, color='k', lw=1, ls='--')
         ax.set_title(f'z = {h} m')
         ax.set_xlabel(xlabel)
         ax.set_ylabel('Count')
-        ax.text(0.97, 0.95,
-                f'Bias = {bias:+{fmt}}{unit}\nRMS  = {rms:{fmt}}{unit}',
-                transform=ax.transAxes, ha='right', va='top', fontsize=11,
-                bbox=dict(boxstyle='round', fc='white', alpha=0.7))
         ax.grid(alpha=0.3)
+        if ok.sum() == 0:
+            ax.text(0.5, 0.5, 'No valid data', transform=ax.transAxes,
+                    ha='center', va='center', fontsize=12, color='red')
+        else:
+            bias = np.mean(d[ok])
+            rms  = np.sqrt(np.mean(d[ok]**2))
+            ax.hist(d[ok], bins=30, color=color, edgecolor='k', linewidth=0.5)
+            ax.text(0.97, 0.95,
+                    f'Bias = {bias:+{fmt}}{unit}\nRMS  = {rms:{fmt}}{unit}',
+                    transform=ax.transAxes, ha='right', va='top', fontsize=11,
+                    bbox=dict(boxstyle='round', fc='white', alpha=0.7))
 
 fig_h.suptitle(f'Lidar DD vs {'M2'} — Error distributions', fontsize=16)
 fig_h.tight_layout()
 fig_h.savefig(os.path.join(cd, 'figures', 'validate_DD_M2', 'error_histograms.png'),
-              dpi=150, bbox_inches='tight')
+              dpi=300, bbox_inches='tight')
 
 #%% Plot 3 — avg_hours-averaged vertical WS profiles (same axes, colored by time)
 
@@ -243,13 +227,13 @@ WS_dd_avg, WS_dd_low, WS_dd_top={},{},{}
 WS_m2_avg, WS_m2_low, WS_m2_top={},{},{}
 for b in unique_bins:
     mask = bin_hour == b
-    WS_dd_avg[b] = np.array([mean_ci(WS_dd_mat[mask, k], max_ci)[0] for k in range(n_dd)])
-    WS_dd_low[b] = np.array([mean_ci(WS_dd_mat[mask, k], max_ci)[1] for k in range(n_dd)])
-    WS_dd_top[b] = np.array([mean_ci(WS_dd_mat[mask, k], max_ci)[2] for k in range(n_dd)])
+    WS_dd_avg[b] = np.array([utl.mean_ci(WS_dd_mat[mask, k], max_ci)[0] for k in range(n_dd)])
+    WS_dd_low[b] = np.array([utl.mean_ci(WS_dd_mat[mask, k], max_ci)[1] for k in range(n_dd)])
+    WS_dd_top[b] = np.array([utl.mean_ci(WS_dd_mat[mask, k], max_ci)[2] for k in range(n_dd)])
     
-    WS_m2_avg[b] = np.array([mean_ci(WS_m2_mat[mask, k], max_ci)[0] for k in range(n_m2)])
-    WS_m2_low[b] = np.array([mean_ci(WS_m2_mat[mask, k], max_ci)[1] for k in range(n_m2)])
-    WS_m2_top[b] = np.array([mean_ci(WS_m2_mat[mask, k], max_ci)[2] for k in range(n_m2)])
+    WS_m2_avg[b] = np.array([utl.mean_ci(WS_m2_mat[mask, k], max_ci)[0] for k in range(n_m2)])
+    WS_m2_low[b] = np.array([utl.mean_ci(WS_m2_mat[mask, k], max_ci)[1] for k in range(n_m2)])
+    WS_m2_top[b] = np.array([utl.mean_ci(WS_m2_mat[mask, k], max_ci)[2] for k in range(n_m2)])
 
 norm_p   = plt.Normalize(unique_bins[0] * avg_hours, unique_bins[-1] * avg_hours)
 cmap_p   = matplotlib.cm.inferno
@@ -286,4 +270,4 @@ ax_p.legend(fontsize=10, title='Local time')
 
 fig_p.tight_layout()
 fig_p.savefig(os.path.join(cd, 'figures', 'validate_DD_M2', 'WS_profiles_avgourly.png'),
-              dpi=150, bbox_inches='tight')
+              dpi=300, bbox_inches='tight')

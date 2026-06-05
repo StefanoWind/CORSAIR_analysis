@@ -19,6 +19,31 @@ def cosd(x):
 def sind(x):
     return np.sin(np.radians(x))
 
+#%% Statistics
+def filt_stat(x, func, perc_lim=[5, 95]):
+    x = x.copy()
+    x = x[np.isfinite(x)]
+    x = x[(x >= np.nanpercentile(x, perc_lim[0])) & (x <= np.nanpercentile(x, perc_lim[1]))]
+    return func(x)
+
+def filt_BS_stat(x, func, p_value=5, M_BS=100, min_N=10, perc_lim=[5, 95]):
+    x = x.copy()
+    x = x[np.isfinite(x)]
+    x = x[(x >= np.nanpercentile(x, perc_lim[0])) & (x <= np.nanpercentile(x, perc_lim[1]))]
+    if len(x) < min_N or len(x) == 1:
+        return np.nan
+    x_BS = x[np.random.randint(0, len(x), size=(M_BS, len(x)))]
+    return np.nanpercentile(func(x_BS, axis=1), p_value)
+
+def mean_ci(f, max_ci, p_value=0.05, perc_lim=[5, 95]):
+    f = np.asarray(f, dtype=float)
+    f_avg = filt_stat(f, np.nanmean, perc_lim=perc_lim)
+    f_low = filt_BS_stat(f, np.nanmean, perc_lim=perc_lim, p_value=p_value / 2 * 100)
+    f_top = filt_BS_stat(f, np.nanmean, perc_lim=perc_lim, p_value=(1 - p_value / 2) * 100)
+    if f_top - f_low > max_ci or np.isnan(f_top - f_low):
+        f_avg = np.nan
+    return f_avg, f_low, f_top
+
 #%% Data processing
 def format_file(file,save_path,delete,config,logfile_main,replace):
     '''
@@ -174,7 +199,7 @@ def lisboa_file(file,config_path,logfile_main,sdate,edate,delete,replace):
     
 def dual_doppler_reconstruction(Data1:xr.Dataset(),
                                 Data2:xr.Dataset(),
-                                sigma_rws: float=1,
+                                sigma_rws: float=0.1,
                                 sigma_w:float=1,
                                 save_path:str='',
                                 logfile_main:str=None,
@@ -531,8 +556,11 @@ def plot_wind_map(Data,
                   stride=3,
                   path_layout='',
                   markers={},
+                  levels=None,
                   perc_min=5,
-                  perc_max=95):
+                  perc_max=95,
+                  topo=None,
+                  topo_levels=10):
     '''
     Plot dual-Doppler wind map
     '''
@@ -559,8 +587,9 @@ def plot_wind_map(Data,
     ncols=int(np.floor(len(heights))/2)+1
     gs = GridSpec(nrows=2, ncols=ncols, width_ratios=[1,1,0.05], figure=fig)
       
-    levels=np.unique(np.round(np.linspace(np.nanpercentile(Data.WS,perc_min)-0.5, 
-                                          np.nanpercentile(Data.WS,perc_max)+0.5, 20),1))
+    if levels is None:
+        levels=np.unique(np.round(np.linspace(np.nanpercentile(Data.WS,perc_min)-0.5, 
+                                              np.nanpercentile(Data.WS,perc_max)+0.5, 20),1))
     
     if len(levels)>=2:
     
@@ -590,6 +619,11 @@ def plot_wind_map(Data,
                 color="k",
                 alpha=0.8)
             
+            #topography
+            if topo is not None:
+                ax.contour(topo.x.values, topo.y.values, topo.z.values.T,
+                           colors='k', linewidths=0.5, alpha=0.4, levels=topo_levels)
+
             #layout
             for m in markers.keys():
                 sel=Layout['Description']==m

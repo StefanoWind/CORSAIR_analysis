@@ -90,7 +90,7 @@ for channel in config['channels_dual-doppler']:
         
     #standardize all files within date range
     files[channel]=sorted(glob.glob(os.path.join(config['path_data'],
-                '.'.join(channel.split('.')[:-1])+'.c1','*nc')))
+                '.'.join(channel.split('.')[:-1])+'.c0','*nc')))
     
     dates[channel]=np.array([utl.date_from_file(f) for f in files[channel]])
    
