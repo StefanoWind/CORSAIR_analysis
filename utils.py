@@ -108,7 +108,7 @@ def lisboa_file(file,config_path,logfile_main,sdate,edate,delete,replace):
          
             #load config
             config,config_lisboa=load_config_from_file(config_path,file)
-            save_path=file.replace(config['data_level_in'],'c1')
+            save_path=file.replace(config['data_level_in'],'c0')
             if not os.path.isfile(save_path) or replace:
                 
                 if config is not None:
