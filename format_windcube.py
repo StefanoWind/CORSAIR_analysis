@@ -356,7 +356,7 @@ def plot_ws_wd(ds, out_path, in_path):
 
     sm = cm.ScalarMappable(cmap=cmap, norm=plt.Normalize(distances[0], distances[-1]))
     sm.set_array([])
-    fig.colorbar(sm, cax=cax, label=r'$z$ a.g.l. [m]')
+    fig.colorbar(sm, cax=cax, label=r'$z$ [m a.g.l.]')
 
     plt.savefig(out_path, dpi=100)
     plt.close()
