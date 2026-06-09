@@ -124,7 +124,6 @@ for f1,d1 in zip(files[config['channels_dual-doppler'][0]],dates[config['channel
                                                replace=replace,
                                                save_path=save_path)
     
-        print(f'Dual-Doppler map saved as {save_path}',flush=True)
         
         #plot wind map
         if Output is not None:

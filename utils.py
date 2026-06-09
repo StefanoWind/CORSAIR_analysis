@@ -233,7 +233,14 @@ def dual_doppler_reconstruction(Data1:xr.Dataset(),
                 if not (np.allclose(Data1.x.values, Data2.x.values, atol=1e-9) and
                         np.allclose(Data1.y.values, Data2.y.values, atol=1e-9) and
                         np.allclose(Data1.z.values, Data2.z.values, atol=1e-9)):
-                    print("Mismatching coordinates, aborting dual-Doppler reconstruction")
+
+                    msg = "Mismatching coordinates, aborting dual-Doppler reconstruction. Aborting."
+                    if logfile_main is not None:
+                        with open(logfile_main, 'a') as lf:
+                            lf.write(f"{datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S')} - ERROR - {msg}\n")
+                    else:
+                        print(msg)
+                        
                     return None
                 
                 #get spherical coordinates for lidar 1
@@ -313,8 +320,8 @@ def dual_doppler_reconstruction(Data1:xr.Dataset(),
                 #specific attributes
                 Output.attrs['start_time']=Data1.attrs['start_time']
                 Output.attrs['end_time']=  Data1.attrs['end_time']
-                Output.attrs['site1']=Data1.attrs['site']
-                Output.attrs['site2']=Data2.attrs['site']
+                Output.attrs['location_id1']=Data1.attrs['location_id']
+                Output.attrs['location_id2']=Data2.attrs['location_id']
                 Output.attrs['origin_lat']=Data1.attrs['config_origin_lat']
                 Output.attrs['origin_lon']=Data1.attrs['config_origin_lon']
                 
@@ -335,6 +342,12 @@ def dual_doppler_reconstruction(Data1:xr.Dataset(),
                 if save_path != '':
                     os.makedirs(os.path.dirname(save_path),exist_ok=True)
                     Output.to_netcdf(save_path)
+                    msg=f'Dual-Doppler map saved as {save_path}'
+                    if logfile_main is not None:
+                        with open(logfile_main, 'a') as lf:
+                            lf.write(f"{datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S')} - ERROR - {msg}\n")
+                    else:
+                        print(msg)
                 
                 return Output
 
@@ -654,7 +667,7 @@ def plot_wind_map(Data,
         plt.colorbar(cf,cax,label=r'LiSBOA-averaged horizontal wind speed [m s$^{-1}$]')
         
         plt.suptitle('LiSBOA-averaged horizontal velocity on '+Data.attrs['start_time'][:10]+\
-                     '\n Synthesized from: '+Data.attrs['site1'] +' and ' + Data.attrs['site2'] \
+                     '\n Synthesized from: '+Data.attrs['location_id1'] +' and ' + Data.attrs['location_id2'] \
                     +'\n Time (UTC): '+Data.attrs['start_time'][11:19]+' - '+Data.attrs['end_time'][11:19])
             
         plt.tight_layout()
