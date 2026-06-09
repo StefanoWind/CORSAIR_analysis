@@ -111,7 +111,7 @@ for f1,d1 in zip(files[config['channels_dual-doppler'][0]],dates[config['channel
         
         #compose filename
         save_path=os.path.join(config['path_data'],Data1.attrs['config_channel_name'], 
-                               Data1.attrs['config_channel_name'].split('/')[-1]+f1.split('.c1')[-1])
+                               Data1.attrs['config_channel_name'].split('/')[-1]+f1.split('.c0')[-1])
         
         #wind map reconstruction
         Output=utl.dual_doppler_reconstruction(Data1=Data1,
