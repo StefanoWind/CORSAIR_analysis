@@ -342,13 +342,7 @@ def dual_doppler_reconstruction(Data1:xr.Dataset(),
                 if save_path != '':
                     os.makedirs(os.path.dirname(save_path),exist_ok=True)
                     Output.to_netcdf(save_path)
-                    msg=f'Dual-Doppler map saved as {save_path}'
-                    if logfile_main is not None:
-                        with open(logfile_main, 'a') as lf:
-                            lf.write(f"{datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S')} - ERROR - {msg}\n")
-                    else:
-                        print(msg)
-                
+                  
                 return Output
 
         except:
