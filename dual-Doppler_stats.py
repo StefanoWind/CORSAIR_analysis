@@ -105,6 +105,7 @@ for f1,d1 in zip(files[config['channels_dual-doppler'][0]],dates[config['channel
         
         #load matching data
         f2=files[config['channels_dual-doppler'][1]][match[0]]
+        print(f'{os.path.basebame(f1)}<->{os.path.basebame(f2)}: match',flush=True)
         Data1=xr.open_dataset(f1)
         Data2=xr.open_dataset(f2)
         
@@ -122,6 +123,9 @@ for f1,d1 in zip(files[config['channels_dual-doppler'][0]],dates[config['channel
                                                edate=edate,
                                                replace=replace,
                                                save_path=save_path)
+    
+        print(f'Dual-Doppler map saved as {save_path}',flush=True)
+        
         #plot wind map
         if Output is not None:
             utl.plot_wind_map(Output,
