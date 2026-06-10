@@ -324,6 +324,9 @@ def dual_doppler_reconstruction(Data1:xr.Dataset(),
                 Output.attrs['location_id2']=Data2.attrs['location_id']
                 Output.attrs['origin_lat']=Data1.attrs['config_origin_lat']
                 Output.attrs['origin_lon']=Data1.attrs['config_origin_lon']
+                Output.attrs['origin_alt']=Data1.attrs['config_origin_alt']
+                Output.attrs['sigma_rws']=Data1.attrs['config_sigma_rws']
+                Output.attrs['sigma_w']=Data1.attrs['config_sigma_w']
                 
                 #general attributes
                 Output.attrs.update({
