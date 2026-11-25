@@ -90,9 +90,10 @@ for l in range(L):
     Data1.attrs['z_lidar']=z1
     Data1.attrs['start_time']='2026-01-01T00:00:00'
     Data1.attrs['end_time']=  '2026-01-01T00:30:00'
-    Data1.attrs['site']='site1'
+    Data1.attrs['location_id']='site1'
     Data1.attrs['config_origin_lat']=0
     Data1.attrs['config_origin_lon']=0
+    Data1.attrs['config_origin_alt']=0
     
     Data2=xr.Dataset()
     Data2['rws_avg']=rws2+err_rws2+utl.sind(ele2)*w
@@ -101,9 +102,10 @@ for l in range(L):
     Data2.attrs['z_lidar']=z2
     Data2.attrs['start_time']='2026-01-01T00:00:00'
     Data2.attrs['end_time']=  '2026-01-01T00:30:00'
-    Data2.attrs['site']='site2'
+    Data2.attrs['location_id']='site2'
     Data2.attrs['config_origin_lat']=0
     Data2.attrs['config_origin_lon']=0
+    Data2.attrs['config_origin_alt']=0
     
     #DD reconstruction
     Output=utl.dual_doppler_reconstruction(Data1,Data2,sigma_rws=sigma_rws,sigma_w=sigma_w)

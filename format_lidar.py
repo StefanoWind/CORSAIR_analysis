@@ -59,16 +59,25 @@ os.makedirs('log',exist_ok=True)
 #%% Main
 for channel in config['channels']:
         
-    #format all files within date range
-    files=sorted(glob.glob(os.path.join(config['path_data'],channel,'*hpl')))
-    files=[f for f in files if (m:=re.search(r'20\d{6}',os.path.basename(f))) is not None and
+    #format all files within date range, from both raw (original name) and 00 (already renamed) folders
+    base=re.sub(r'\.(raw|00)$','',channel)
+    save_path_raw=os.path.join(config['path_data'],base+'.00')
+    files_raw=sorted(glob.glob(os.path.join(config['path_data'],base+'.raw','*hpl')))
+    files_00=sorted(glob.glob(os.path.join(save_path_raw,'*hpl')))
+
+    #skip renamed files whose raw original is also available
+    stamps_raw={m.group(0).replace('_','.') for f in files_raw if (m:=re.search(r'20\d{6}_\d{6}',os.path.basename(f))) is not None}
+    files_00=[f for f in files_00 if (m:=re.search(r'20\d{6}\.\d{6}',os.path.basename(f))) is None or m.group(0) not in stamps_raw]
+
+    #renamed files are never deleted, since they are the only copy of the raw data
+    files=[(f,delete) for f in files_raw]+[(f,False) for f in files_00]
+    files=[(f,d) for f,d in files if (m:=re.search(r'20\d{6}',os.path.basename(f))) is not None and
            datetime.strptime(sdate,'%Y-%m-%d')<=datetime.strptime(m.group(0),'%Y%m%d')<=datetime.strptime(edate,'%Y-%m-%d')]
-    save_path_raw=os.path.join(config['path_data'],channel.replace('raw','00'))
     if mode=='serial':
-        for f in files:
-            utl.format_file(f,save_path_raw,delete,config,logfile_main,replace)
+        for f,d in files:
+            utl.format_file(f,save_path_raw,d,config,logfile_main,replace)
     elif mode=='parallel':
-        args = [(files[i],save_path_raw,delete,config,logfile_main+f'.{i}',replace) for i in range(len(files))]
+        args = [(files[i][0],save_path_raw,files[i][1],config,logfile_main+f'.{i}',replace) for i in range(len(files))]
         with Pool() as pool:
             pool.starmap(utl.format_file, args)
         for i in range(len(files)):

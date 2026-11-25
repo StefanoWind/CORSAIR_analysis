@@ -325,8 +325,8 @@ def dual_doppler_reconstruction(Data1:xr.Dataset(),
                 Output.attrs['origin_lat']=Data1.attrs['config_origin_lat']
                 Output.attrs['origin_lon']=Data1.attrs['config_origin_lon']
                 Output.attrs['origin_alt']=Data1.attrs['config_origin_alt']
-                Output.attrs['sigma_rws']=Data1.attrs['config_sigma_rws']
-                Output.attrs['sigma_w']=Data1.attrs['config_sigma_w']
+                Output.attrs['sigma_rws']=sigma_rws
+                Output.attrs['sigma_w']=sigma_w
                 
                 #general attributes
                 Output.attrs.update({
@@ -393,9 +393,10 @@ def dual_doppler_error(x_lidar1: float, y_lidar1: float,
     dummy_attrs = {
         'start_time': '2000-01-01T00:00:00',
         'end_time':   '2000-01-01T00:00:00',
-        'site': '',
+        'location_id': '',
         'config_origin_lat': 0,
         'config_origin_lon': 0,
+        'config_origin_alt': 0,
     }
 
     Data1 = xr.Dataset({'rws_avg': forward_rws(x_lidar1, y_lidar1)}, coords=coords)
@@ -446,7 +447,7 @@ def matrix_plt(x,y,f,cmap,vmin,vmax):
     return pc
 
 def aerial_map(x,y,lat0,lon0,zoom=15,color='r',markersize=10,alpha=1,
-               xmin=None,xmax=None,ymin=None,ymax=None,ax=None):
+               xmin=None,xmax=None,ymin=None,ymax=None,ax=None,label=''):
     '''
     Draw aerail map and superpose points
     '''
@@ -495,7 +496,7 @@ def aerial_map(x,y,lat0,lon0,zoom=15,color='r',markersize=10,alpha=1,
         fig = ax.figure
 
     # Plot your relative points
-    gdf_web.plot(ax=ax, color=color, markersize=markersize, alpha=alpha,zorder=3)
+    gdf_web.plot(ax=ax, color=color, markersize=markersize, alpha=alpha,zorder=3,label=label)
     
     # Impose edges
     if xmin is not None:

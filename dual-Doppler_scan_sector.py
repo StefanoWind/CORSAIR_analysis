@@ -186,6 +186,6 @@ for ax, var in zip(axes.ravel(), clabels):
 
 plt.suptitle(f'{site1} – {site2}', fontsize=16)
 plt.tight_layout()
-plt.savefig(os.path.join(cd, 'figures', 'dual-Doppler_scan_sector', f'{site1}-{site2}.png'),
-            dpi=150, bbox_inches='tight')
+# plt.savefig(os.path.join(cd, 'figures', 'dual-Doppler_scan_sector', f'{site1}-{site2}.png'),
+#             dpi=150, bbox_inches='tight')
 
