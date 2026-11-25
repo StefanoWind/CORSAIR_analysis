@@ -84,9 +84,6 @@ z_beam(s) = z_ground(lidar) + lidar_height + s·sin(ele) + s²/(2·R_eff),   R_e
 | s42 (Halo 199) | Bare earth | 0 | 1175 | 0 | 2425 | 0.00 | – | 0.67 |
 | s42 (Halo 199) | Lidar point cloud | 1168 | 7 | 2273 | 158 | 0.99 | 0.66 | 0.37 |
 
-![s19 contingency](../figures/hard_target/s19.lidar.z01.a0.20260403.202255.user1_contingency.png)
-![s42 contingency](../figures/hard_target/s42.lidar.z01.a0.20260406.150921.user1_contingency.png)
-
 ### s19 (Halo 200)
 
 ![s19 aerial map](../figures/hard_target/s19.lidar.z01.a0.20260403.202255.user1_aerial_map.png)
